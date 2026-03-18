@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/calendar.css' %}">
+{% endblock %}
+{% block title %}Календар{% endblock %}
+{% block content %}
+
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+
+    <div class="calendar-page">
+        <div class="page-header">
+            <div>
+                <h1>Календар</h1>
+                <p>Преглед на събитията и мачовете по дати. Учителите могат да местят записите при нужда.</p>
+            </div>
+
+            <div class="page-header-meta">
+                <span class="badge">Месечен изглед</span>
+                <span class="badge">Планиране</span>
+                <span class="badge">Училищни събития</span>
+            </div>
+        </div>
+
+        <section class="calendar-card">
+            <div class="calendar-card-header">
+                <h2>График на събитията</h2>
+            </div>
+
+            <div class="calendar-card-body">
+                <div id="calendar"></div>
+
+                <div class="calendar-help">
+                    {% if request.user.profile.role == 'teacher' %}
+                        Можеш да местиш събитията в календара. Промяната се запазва автоматично.
+                    {% else %}
+                        Тук можеш да следиш предстоящите събития и мачове по дати.
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.getElementById('calendar');
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'bg',
+                initialView: 'dayGridMonth',
+                height: 'auto',
+                firstDay: 1,
+                buttonText: {
+                    today: 'Днес',
+                    month: 'Месец',
+                    week: 'Седмица',
+                    day: 'Ден',
+                    list: 'Списък'
+                },
+
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listMonth'
+                },
+
+                events: "{% url 'calendar events' %}",
+
+                editable: {% if request.user.profile.role == 'teacher' %}true{% else %}false{% endif %},
+                displayEventTime: true,
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+
+                eventContent: function (arg) {
+                    const title = arg.event.title || "";
+                    const timeText = arg.timeText || "";
+
+                    if (timeText) {
+                        return {
+                            html: `
+                            <div>
+                                <div style="font-size: 0.78rem; opacity: 0.92;">${timeText}</div>
+                                <div style="font-weight: 700;">${title}</div>
+                            </div>
+                        `
+                        };
+                    }
+
+                    return {
+                        html: `<div style="font-weight:700;">${title}</div>`
+                    };
+                },
+
+                eventDrop: function (info) {
+                    saveMove(info.event, info.revert);
+                },
+
+                eventResize: function (info) {
+                    saveMove(info.event, info.revert);
+                }
+            });
+
+            function saveMove(event, revert) {
+                fetch(`/api/calendar/events/${event.id}/move/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken"),
+                    },
+                    body: JSON.stringify({
+                        start: event.start ? event.start.toISOString() : null,
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            revert();
+                        }
+                    })
+                    .catch(() => {
+                        revert();
+                    });
+            }
+
+            calendar.render();
+        });
+    </script>
+
+{% endblock %}

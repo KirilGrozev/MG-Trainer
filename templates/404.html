@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Страницата не беше намерена{% endblock %}
+
+{% block content %}
+    <div class="error-page">
+        <div class="error-card">
+            <div class="error-card-header">
+                <p class="error-code">404</p>
+                <h1 class="error-title">Страницата не беше намерена</h1>
+            </div>
+
+            <div class="error-card-body">
+                <p>
+                    Страницата, която търсиш, не съществува или вече не е налична.
+                    Възможно е адресът да е грешен или съдържанието да е преместено.
+                </p>
+
+                <div class="error-actions">
+                    {% if request.user.is_authenticated %}
+                        {% if request.user.profile.role == 'teacher' %}
+                            <a href="{% url 'teacher dashboard' %}" class="error-btn error-btn-main">Към
+                                учителското табло</a>
+                        {% else %}
+                            <a href="{% url 'student dashboard' %}" class="error-btn error-btn-secondary">Към
+                                началната страница</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <p class="error-note">
+                    Провери адреса или използвай навигацията на сайта, за да продължиш.
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

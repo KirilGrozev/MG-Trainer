@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/base_from.css'%}">
+{% endblock %}
+{% block title %}Създаване на събитие{% endblock %}
+{% block content %}
+
+    <div class="form-page">
+        <div class="form-panel">
+            <div class="form-panel-header">
+                <h2>Създаване на събитие</h2>
+                <p>Попълни информацията по-долу, за да добавиш ново събитие в системата.</p>
+            </div>
+
+            <div class="form-panel-body">
+                <form method="POST" action="{% url 'create event' %}">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+                    <div class="form-actions">
+                        <button type="submit" class="btn-main">Създай</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

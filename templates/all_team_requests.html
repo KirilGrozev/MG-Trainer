@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/all_team_requests.css'%}">
+{% endblock %}
+{% block title %}Заявки{% endblock %}
+{% block content %}
+    <script src="{% static 'js/fetch_navigating.js' %}"></script>
+
+    <div class="requests-page">
+        <div class="page-header">
+            <div>
+                <h1>Заявки</h1>
+                <p>Преглед и управление на всички заявки за присъединяване към отбори.</p>
+            </div>
+
+            <div class="page-header-meta">
+                <span class="badge">Чакащи: {{ pending_req|length }}</span>
+                <span class="badge">Одобрени: {{ approved_req|length }}</span>
+                <span class="badge">Отхвърлени: {{ rejected_req|length }}</span>
+            </div>
+        </div>
+
+        <div class="requests-grid">
+            <section class="section-card">
+                <div class="section-card-header">
+                    <h2>Чакащи заявки</h2>
+                </div>
+
+                <div class="section-card-body">
+                    <div class="requests-list">
+                        {% for r in pending_req %}
+                            <div class="request-card">
+                                <div class="request-top">
+                                    <div class="request-main">
+                                        <h3>{{ r.student }} → {{ r.team }}</h3>
+                                        <p class="request-meta">Подадена на: {{ r.submitted_at }}</p>
+                                    </div>
+
+                                    <span class="request-status status-pending">Чакаща</span>
+                                </div>
+
+                                {% if r.team_match.status == 'editing' %}
+                                    <div class="actions-wrap">
+                                        <form method="post" action="{% url 'approve team request' r.id %}" class="ajax-action-form inline-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-approve">Одобри</button>
+                                        </form>
+
+                                        <form method="post" action="{% url 'reject team request' r.id %}" class="ajax-action-form inline-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-reject">Отхвърли</button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <p class="empty-state">Няма чакащи заявки.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <div class="section-card-header">
+                    <h2>Одобрени заявки</h2>
+                </div>
+
+                <div class="section-card-body">
+                    <div class="requests-list">
+                        {% for r in approved_req %}
+                            <div class="request-card">
+                                <div class="request-top">
+                                    <div class="request-main">
+                                        <h3>{{ r.student }} → {{ r.team }}</h3>
+                                        <p class="request-meta">Заявката е одобрена.</p>
+                                    </div>
+
+                                    <span class="request-status status-approved">Одобрена</span>
+                                </div>
+
+                                {% if r.team_match.status == 'editing' %}
+                                    <div class="actions-wrap">
+                                        <form method="post" action="{% url 'reject team request' r.id %}" class="ajax-action-form inline-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-reject">Отхвърли</button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <p class="empty-state">Няма одобрени заявки.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <div class="section-card-header">
+                    <h2>Отхвърлени заявки</h2>
+                </div>
+
+                <div class="section-card-body">
+                    <div class="requests-list">
+                        {% for r in rejected_req %}
+                            <div class="request-card">
+                                <div class="request-top">
+                                    <div class="request-main">
+                                        <h3>{{ r.student }} → {{ r.team }}</h3>
+                                        <p class="request-meta">Заявката е отхвърлена.</p>
+                                    </div>
+
+                                    <span class="request-status status-rejected">Отхвърлена</span>
+                                </div>
+
+                                {% if r.team_match.status == 'editing' %}
+                                    <div class="actions-wrap">
+                                        <form method="post" action="{% url 'approve team request' r.id %}" class="ajax-action-form inline-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-approve">Одобри</button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <p class="empty-state">Няма отхвърлени заявки.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+{% endblock %}

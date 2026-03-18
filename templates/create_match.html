@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/base_from.css'%}">
+{% endblock %}
+{% block title %}Създаване на мач{% endblock %}
+{% block content %}
+
+    <div class="form-page">
+        <div class="form-panel">
+            <div class="form-panel-header">
+                <h2>Създаване на мач</h2>
+                <p>Попълни информацията по-долу, за да добавиш нов мач в системата.</p>
+            </div>
+
+            <div class="form-panel-body">
+                <form method="POST" action="{% url 'create match' activity.id %}">
+                    <input type="hidden" name="event_id" value="{{ event_id }}">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-main">Създай</button>
+                    </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

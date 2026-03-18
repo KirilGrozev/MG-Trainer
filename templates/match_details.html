@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load dict_extras %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/match_details.css' %}">
+{% endblock %}
+{% block title %}Детайли за мач{% endblock %}
+{% block content %}
+    <script src="{% static 'js/fetch_navigating.js' %}"></script>
+
+    <div class="match-page">
+        <div class="page-header">
+            <div>
+                <h1>Детайли за мач</h1>
+                <p class="empty-note">Преглед на отборите, участниците, резултата и действията за текущия мач.</p>
+            </div>
+
+            <div class="page-header-meta">
+                <span class="badge">Събитие: {{ event.name }}</span>
+                <span class="badge">Макс. отбори: {{ match.max_teams_per_match }}</span>
+                {% if match.is_finished %}
+                    <span class="badge">Приключен</span>
+                {% else %}
+                    <span class="badge">Неприключен</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <section class="section-card">
+            <div class="section-card-header">
+                <h2>Отбори</h2>
+            </div>
+
+            <div class="section-card-body">
+                <div class="teams-grid">
+                    {% for tm in match.team_matches.all %}
+                        <div class="team-card {% if not tm.team.is_active %}inactive{% endif %}">
+                            <div class="team-top">
+                                <div>
+                                    <h3>{{ tm.team.name }}</h3>
+                                    <p class="meta-line">
+                                        Капацитет: {{ tm.team.students.count }} / {{ tm.team.number_of_players }}
+                                    </p>
+                                </div>
+
+                                <div class="team-meta">
+                                    {% if tm.team.is_active %}
+                                        <span class="badge">Активен отбор</span>
+                                    {% else %}
+                                        <span class="badge">Архивиран отбор</span>
+                                    {% endif %}
+
+                                    {% if tm.status == 'editing' %}
+                                        <span class="badge">Редактиране</span>
+                                    {% else %}
+                                        <span class="badge">Заключен</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if tm.team.is_active %}
+                                <h4 class="subsection-title">Участници</h4>
+                                <ul class="players-list">
+                                    {% for s in tm.team.students.all %}
+                                        <li>{{ s.email }}</li>
+                                    {% empty %}
+                                        <li class="empty-note">Все още няма участници.</li>
+                                    {% endfor %}
+                                </ul>
+
+                                {% if not request.user.profile.is_banned_from_participation and request.user.profile.is_active and tm.status == 'editing' and not match.result and not match.is_finished %}
+                                    <div class="actions-wrap">
+                                        {% with action=team_actions|get_item:tm.team.id %}
+                                            {% if action == 'join' %}
+                                                <form method="post" action="{% url 'request join team' tm.team.id %}"
+                                                      class="ajax-action-form inline-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="match_id" value="{{ match.id }}">
+                                                    <input type="hidden" name="event_id" value="{{ event.id }}">
+                                                    <button type="submit">Заяви участие</button>
+                                                </form>
+                                            {% endif %}
+
+                                            {% if action == 'cancel' %}
+                                                <form method="post" action="{% url 'cancel team request' tm.team.id %}"
+                                                      class="ajax-action-form inline-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="match_id" value="{{ match.id }}">
+                                                    <input type="hidden" name="event_id" value="{{ event.id }}">
+                                                    <button type="submit" class="secondary-btn">Откажи заявката</button>
+                                                </form>
+                                            {% endif %}
+
+                                            {% if action == 'leave' %}
+                                                <form method="post" action="{% url 'leave team' tm.team.id %}"
+                                                      class="ajax-action-form inline-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="match_id" value="{{ match.id }}">
+                                                    <input type="hidden" name="event_id" value="{{ event.id }}">
+                                                    <button type="submit" class="warning-btn">Напусни отбора</button>
+                                                </form>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                {% endif %}
+
+                                {% if request.user.profile.role == 'teacher' %}
+                                    <div class="actions-wrap">
+                                        <button type="button" class="plain-toggle-btn"
+                                                onclick="document.getElementById('add-achievement-box-{{ tm.team.id }}').hidden = false;">
+                                            Добави постижение
+                                        </button>
+                                    </div>
+
+                                    <div id="add-achievement-box-{{ tm.team.id }}" class="mini-form-panel" hidden>
+                                        <form method="post" action="{% url 'add team achievements' tm.team.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="match_id" value="{{ match.id }}">
+                                            <input type="hidden" name="event_id" value="{{ event.id }}">
+
+                                            <select name="achievement_id" required>
+                                                {% for a in available_achievements %}
+                                                    <option value="{{ a.id }}">{{ a.name }}</option>
+                                                {% endfor %}
+                                            </select>
+
+                                            <div class="mini-form-actions">
+                                                <button type="submit">Запази</button>
+                                                <button type="button" class="secondary-btn"
+                                                        onclick="document.getElementById('add-achievement-box-{{ tm.team.id }}').hidden = true;">
+                                                    Отказ
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if request.user.profile.role == 'teacher' and not match.result %}
+                                <div class="actions-wrap">
+                                    <form method="post" action="{% url 'archive team' tm.team.id %}"
+                                          class="ajax-action-form inline-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="match_id" value="{{ match.id }}">
+                                        <input type="hidden" name="event_id" value="{{ event.id }}">
+                                        <button type="submit" class="warning-btn">Архивирай отбор</button>
+                                    </form>
+
+                                    <form method="post" action="{% url 'remove team' tm.team.id %}"
+                                          class="ajax-action-form inline-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="match_id" value="{{ match.id }}">
+                                        <input type="hidden" name="event_id" value="{{ event.id }}">
+                                        <button type="submit" class="danger-btn">Премахни от мача</button>
+                                    </form>
+
+                                    {% if tm.status == 'editing' %}
+                                        <form method="post" action="{% url 'lock team' tm.team.id %}"
+                                              class="ajax-action-form inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="match_id" value="{{ match.id }}">
+                                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                                            <button type="submit">Заключи отбора</button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="{% url 'unlock team' tm.team.id %}"
+                                              class="ajax-action-form inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="match_id" value="{{ match.id }}">
+                                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                                            <button type="submit" class="secondary-btn">Отключи отбора</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <h4 class="subsection-title">Постижения</h4>
+                            <ul class="achievements-list">
+                                {% for a in tm.team.achievements.all %}
+                                    <li>{{ a.name }}</li>
+                                {% empty %}
+                                    <li class="empty-note">Все още няма постижения.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% empty %}
+                        <div class="team-card">
+                            <h3>Няма налични отбори</h3>
+                            <p class="empty-note">За този мач все още не са добавени отбори.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if request.user.profile.role == 'teacher' and match.teams.count < match.max_teams_per_match %}
+                    <div class="global-actions" style="margin-top: 22px;">
+                        <button type="button" class="plain-toggle-btn"
+                                onclick="document.getElementById('add-team-box').hidden = false;">
+                            Добави съществуващ отбор
+                        </button>
+
+                        <form method="get" action="{% url 'create team' match.id %}">
+                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                            <button type="submit">Създай отбор</button>
+                        </form>
+                    </div>
+
+                    <div id="add-team-box" class="mini-form-panel" hidden>
+                        <form method="post" action="{% url 'add existing team' match.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="event_id" value="{{ event.id }}">
+
+                            <select name="team_id" required>
+                                {% for team in available_teams %}
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <div class="mini-form-actions">
+                                <button type="submit">Запази</button>
+                                <button type="button" class="secondary-btn"
+                                        onclick="document.getElementById('add-team-box').hidden = true;">
+                                    Отказ
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="section-card">
+            <div class="section-card-header">
+                <h2>Резултат</h2>
+            </div>
+
+            <div class="section-card-body result-layout">
+                {% if match.result %}
+                    {% if match.result.scores %}
+                        <ul class="result-list">
+                            {% for team_id, score in match.result.scores.items %}
+                                <li>{{ team_lookup|get_item:team_id }} : {{ score }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% elif match.result.placements %}
+                        <ul class="result-list">
+                            {% for placement in match.result.placements %}
+                                <li>{{ team_lookup|get_item:placement.team_id }} - {{ placement.value }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% else %}
+                    <p class="empty-note">Все още няма въведен резултат.</p>
+                {% endif %}
+
+                {% if request.user.profile.role == 'teacher' and result_form %}
+                    <div class="mini-form-panel">
+                        <form method="post" action="{% url 'match result' match.pk %}" class="ajax-action-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                            {{ result_form.as_p }}
+
+                            {% if match.is_finished %}
+                                <button type="submit">Запази резултата</button>
+                            {% else %}
+                                <button type="submit" disabled>Запази резултата</button>
+                                <p class="disabled-note">Резултат може да бъде запазен само когато мачът е
+                                    приключил.</p>
+                            {% endif %}
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="winner-box">
+            <h3>Победител</h3>
+
+            {% if match.result %}
+                {% if match.winners.count > 1 and match.result.scores %}
+                    <p class="draw-note"><strong>Равенство</strong></p>
+                {% else %}
+                    <ul class="winner-list">
+                        {% for team in match.winners %}
+                            <li>🏆 <strong>{{ team.name }}</strong></li>
+                        {% empty %}
+                            <li class="empty-note">Няма победител.</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% else %}
+                <p class="empty-note">Резултатът все още не е въведен.</p>
+            {% endif %}
+        </section>
+    </div>
+
+{% endblock %}

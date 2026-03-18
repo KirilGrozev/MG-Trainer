@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/base_from.css' %}">
+{% endblock %}
+{% block title %}Създаване на дейност{% endblock %}
+{% block content %}
+
+    <div class="form-page">
+        <div class="form-panel">
+            <div class="form-panel-header">
+                <h2>Създаване на дейност</h2>
+                <p>Попълни информацията по-долу, за да добавиш нова дейност в системата.</p>
+            </div>
+
+            <div class="form-panel-body">
+                <form method="POST" action="{% url 'create activity' event_id=event.pk %}">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-main">Създай</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

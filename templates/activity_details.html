@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load dict_extras %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/activity_details.css' %}">
+{% endblock %}
+{% block title %}Детайли за дейност{% endblock %}
+{% block content %}
+    <script src="{% static 'js/fetch_navigating.js' %}"></script>
+
+    <div class="activity-page">
+        <div class="page-header">
+            <div>
+                <h1>Детайли за дейност</h1>
+                <p>Преглед на мачовете, свързани с текущата дейност.</p>
+            </div>
+
+            <div class="page-header-meta">
+                <span class="badge">Събитие: {{ event.name }}</span>
+                <span class="badge">Дейност: {{ activity.name }}</span>
+                <span class="badge">Мачове: {{ activity.matches.count }}</span>
+            </div>
+        </div>
+
+        <section class="section-card">
+            <div class="section-card-header">
+                <h2>Мачове</h2>
+            </div>
+
+            <div class="section-card-body">
+                {% if request.user.profile.role == 'teacher' %}
+                    <div class="top-actions" style="margin-bottom: 18px;">
+                        <form method="get" action="{% url 'create match' activity.id %}">
+                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                            <button type="submit">Създай мач</button>
+                        </form>
+                    </div>
+                {% endif %}
+
+                <div class="matches-grid">
+                    {% for m in activity.matches.all %}
+                        {% if m.is_active %}
+                            <div class="match-card">
+                                <div class="match-top">
+                                    <div>
+                                        <h3>Мач</h3>
+                                        <p class="muted-text">Начало: {{ m.start_time }}</p>
+                                    </div>
+
+                                    <div class="badge-row">
+                                        <span class="badge">Активен</span>
+                                        {% if m.result %}
+                                            <span class="badge">Има резултат</span>
+                                        {% else %}
+                                            <span class="badge">Без резултат</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="card-actions">
+                                    <a href="{% url 'match details' event.pk m.pk %}" class="link-btn">
+                                        Детайли
+                                    </a>
+
+                                    {% if request.user.profile.role == 'teacher' %}
+                                        <form method="post" action="{% url 'archive match' m.pk %}"
+                                              class="ajax-action-form inline-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                                            <button type="submit" class="warning-btn">
+                                                {{ match_actions|get_item:m.id }}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% empty %}
+                        <div class="match-card">
+                            <h3>Няма налични мачове</h3>
+                            <p class="empty-state">За тази дейност все още не са създадени мачове.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </div>
+
+
+{% endblock %}

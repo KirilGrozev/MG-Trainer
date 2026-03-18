@@ -1,0 +1,135 @@
+.form-page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 10px 0;
+}
+
+.form-panel {
+    width: 100%;
+    max-width: 720px;
+    background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+    border: 1px solid #d9e2ec;
+    border-radius: 20px;
+    box-shadow: 0 16px 35px rgba(31, 78, 121, 0.08);
+    overflow: hidden;
+}
+
+.form-panel-header {
+    background: linear-gradient(135deg, #1f4e79 0%, #285d8f 100%);
+    color: white;
+    padding: 24px 28px;
+}
+
+.form-panel-header h2 {
+    margin: 0 0 8px;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.form-panel-header p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.84);
+    font-size: 0.96rem;
+}
+
+.form-panel-body {
+    padding: 28px;
+}
+
+.form-panel form {
+    display: grid;
+    gap: 18px;
+}
+
+.form-panel p {
+    margin: 0;
+}
+
+.form-panel label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #163955;
+}
+
+.form-panel input[type="text"],
+.form-panel input[type="email"],
+.form-panel input[type="number"],
+.form-panel input[type="date"],
+.form-panel input[type="datetime-local"],
+.form-panel select,
+.form-panel textarea {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #d9e2ec;
+    border-radius: 12px;
+    background: white;
+    transition: 0.2s ease;
+}
+
+.form-panel input:focus,
+.form-panel select:focus,
+.form-panel textarea:focus {
+    outline: none;
+    border-color: #1f4e79;
+    box-shadow: 0 0 0 4px rgba(31, 78, 121, 0.12);
+}
+
+.form-panel textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.btn-main {
+    background: #1f4e79;
+    color: white;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-weight: 700;
+    border: none;
+    transition: 0.2s ease;
+}
+
+.btn-main:hover {
+    background: #163955;
+    transform: translateY(-1px);
+}
+
+.help-text,
+.form-panel .helptext {
+    display: block;
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 0.88rem;
+}
+
+.errorlist {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    color: #c0392b;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .form-panel-header,
+    .form-panel-body {
+        padding: 20px;
+    }
+
+    .form-actions {
+        justify-content: stretch;
+    }
+
+    .btn-main {
+        width: 100%;
+    }
+}

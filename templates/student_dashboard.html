@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
+{% endblock %}
+{% block title %}Ученическо табло{% endblock %}
+{% block content %}
+
+    <div class="student-page">
+        <div class="page-header">
+            <div>
+                <h1>Ученическо табло</h1>
+                <p>Преглед на събитията, мачовете, отборите, известията и постиженията ти.</p>
+            </div>
+
+            <div class="page-header-meta">
+                {% if not request.user.profile.is_banned_from_participation %}
+                    <span class="badge">Отсъствия: {{ request.user.profile.absence_count }}/5</span>
+                {% else %}
+                    <span class="badge">Забранено участие</span>
+                {% endif %}
+
+                {% if request.user.profile.is_active %}
+                    <span class="badge">Активен профил</span>
+                {% else %}
+                    <span class="badge">Неактивен профил</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <section class="section-card">
+                <div class="section-card-header">
+                    <h2>Статус на участие</h2>
+                </div>
+
+                <div class="section-card-body">
+                    <div class="status-card">
+                        {% if not request.user.profile.is_banned_from_participation %}
+                            <h3 class="status-warning">Отсъствия: {{ request.user.profile.absence_count }}/5</h3>
+                            <p class="muted-text">При достигане на 5 отсъствия участието се забранява, докато учител не
+                                го възстанови.</p>
+                        {% else %}
+                            <h3 class="status-danger">Участието е забранено</h3>
+                            <p class="muted-text">Нямаш право да участваш, докато учител не премахне забраната.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <div class="section-card-header">
+                    <h2>Събития и предстоящи мачове</h2>
+                </div>
+
+                <div class="section-card-body">
+                    <div class="cards-grid">
+                        {% for e in events %}
+                            <div class="event-card">
+                                <div class="card-top">
+                                    <div class="card-main">
+                                        <h3>{{ e.name }}</h3>
+                                        <p class="muted-text">Събитие, в което имаш достъп до дейности и мачове.</p>
+                                    </div>
+                                </div>
+
+                                <div class="card-actions">
+                                    <a href="{% url 'event details' e.pk %}" class="link-btn">Детайли</a>
+                                </div>
+
+                                <div class="nested-list">
+                                    {% for a in e.activities.all %}
+                                        {% if a.is_active %}
+                                            {% for m in a.matches.all %}
+                                                {% if m.is_active %}
+                                                    {% for t in m.teams.all %}
+                                                        {% if request.user.profile in t.students.all and t.is_active %}
+                                                            <div class="nested-item">
+                                                                <h4>Предстоящ мач</h4>
+                                                                <p class="muted-text">Начало: {{ m.start_time }}</p>
+                                                                <div class="card-actions">
+                                                                    <a href="{% url 'match details' e.pk m.pk %}"
+                                                                       class="link-btn">Детайли за мача</a>
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
+                                            {% empty %}
+                                                <p class="empty-state">Все още няма мачове.</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="event-card">
+                                <h3>Няма събития</h3>
+                                <p class="empty-state">Все още няма налични събития.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            {% if request.user.profile.is_active %}
+                <section class="section-card">
+                    <div class="section-card-header">
+                        <h2>Известия</h2>
+                    </div>
+
+                    <div class="section-card-body">
+                        <div class="cards-grid">
+                            {% for n in notifications %}
+                                <div class="notification-card">
+                                    <div class="card-main">
+                                        <h3>{{ n.title }}</h3>
+                                        <p class="muted-text">{{ n.message }}</p>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="notification-card">
+                                    <h3>Няма известия</h3>
+                                    <p class="empty-state">Все още няма нови известия.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section-card">
+                    <div class="section-card-header">
+                        <h2>Моите заявки</h2>
+                    </div>
+
+                    <div class="section-card-body">
+                        <div class="cards-grid">
+                            {% for mr in my_request %}
+                                <div class="request-card">
+                                    <div class="card-main">
+                                        <h3>Заявка</h3>
+                                        <p class="muted-text">Статус: {{ mr.status }}</p>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="request-card">
+                                    <h3>Няма заявки</h3>
+                                    <p class="empty-state">Все още не си подавал заявки.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section-card">
+                    <div class="section-card-header">
+                        <h2>Моите отбори</h2>
+                    </div>
+
+                    <div class="section-card-body">
+                        <div class="cards-grid">
+                            {% for t in my_teams %}
+                                {% if t.is_active %}
+                                    <div class="team-card">
+                                        <div class="card-main">
+                                            <h3>{{ t.name }}</h3>
+                                            <p class="muted-text">Активен отбор, в който участваш.</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% empty %}
+                                <div class="team-card">
+                                    <h3>Нямаш отбори</h3>
+                                    <p class="empty-state">Все още не си част от отбор.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+            {% endif %}
+
+            <section class="section-card">
+                <div class="section-card-header">
+                    <h2>Постижения</h2>
+                </div>
+
+                <div class="section-card-body">
+                    <div class="cards-grid">
+                        {% for a in my_achievements %}
+                            <div class="achievement-card">
+                                <div class="card-main">
+                                    <h3>{{ a.name }}</h3>
+                                    <p class="muted-text">Постижение, свързано с твоето участие.</p>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="achievement-card">
+                                <h3>Няма постижения</h3>
+                                <p class="empty-state">Все още нямаш записани постижения.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-card">
+                <div class="section-card-header">
+                    <h2>Управление на профила</h2>
+                </div>
+
+                <div class="section-card-body">
+                    <form method="post" action="{% url 'edit student categories' %}" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="secondary-btn">Редактирай категориите</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+
+
+
+{% endblock %}

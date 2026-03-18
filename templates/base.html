@@ -1,0 +1,80 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.1">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
+    {% block additional_css %}{% endblock %}
+    <title>{% block title %}Училищен спортен мениджър{% endblock %}</title>
+</head>
+<body>
+<div class="site-shell">
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand-row">
+                <div class="brand">
+                    <div class="brand-mark">🏆</div>
+                    <div class="brand-text">
+                        <h1>Училищен спортен мениджър</h1>
+                        <p>Събития, дейности, отбори и резултати на едно място</p>
+                    </div>
+                </div>
+
+                <div class="topbar-actions">
+                    <form method="post" action="{% url 'account_logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit">Изход</button>
+                    </form>
+                </div>
+            </div>
+
+            <nav>
+                <ul>
+                    {% if request.user.is_superuser %}
+                        <li><a href="{% url 'admin:index' %}">Админ панел</a></li>
+                    {% endif %}
+                    {% if request.user.profile.role == 'teacher' %}
+                        <li><a href="{% url 'create event' %}">Създай събитие</a></li>
+                        <li><a href="{% url 'create achievement' %}">Създай постижение</a></li>
+                        <li><a href="{% url 'all team requests' %}">Заявки</a></li>
+                    {% endif %}
+
+                    <li><a href="{% url 'calendar' %}">Календар</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-wrap">
+        <div class="content-card">
+            {% if messages %}
+                <div class="messages-wrap">
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <li class="{{ message.tags }}">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-inner">
+            <div>
+                <strong>Училищен спортен мениджър</strong><br>
+                <span class="footer-note">Организирай събития, дейности, отбори и резултати по ясен и удобен начин.</span>
+            </div>
+            <div class="footer-note">
+                Създаден за ученици, учители и училищни турнири
+            </div>
+        </div>
+    </footer>
+</div>
+</body>
+</html>
