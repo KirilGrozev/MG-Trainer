@@ -11,12 +11,12 @@ ALLOWED_DOMAIN = 'schoolmath.eu'
 #        domain = email.split('@')[-1]
 #
 #        if domain not in ALLOWED_DOMAIN:
-#            raise PermissionDenied("Only school accounts allowed")
+#            raise PermissionDenied("Only school account allowed")
 
 
 class TestSchoolAccountAdapter(DefaultAccountAdapter):
     def clean_email(self, email):
         domain = email.split('@')[-1]
         if domain not in ALLOWED_DOMAIN:
-            raise PermissionDenied('Only school accounts allowed')
+            raise PermissionDenied('Only school account allowed')
         return email

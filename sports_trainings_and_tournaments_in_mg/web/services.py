@@ -29,6 +29,7 @@ def promote_students_and_graduate():
     user.profile.objects.filter(id__in=graduating_user_ids).update(is_active=False)
 
 
+@transaction.atomic
 def create_upcoming_event_notifications():
     today = timezone.now().date()
     upcoming_limit = today + timedelta(days=3)
@@ -41,7 +42,7 @@ def create_upcoming_event_notifications():
 
     for event in upcoming_events:
         students = Profile.objects.filter(
-            teamprofile__team__matches__activity__events__contains=event,
+            teamprofile__team__matches__activity__events=event,
             role='student',
             is_active=True,
             is_banned_from_participation=False,

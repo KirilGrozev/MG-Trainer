@@ -11,7 +11,7 @@ from sports_trainings_and_tournaments_in_mg.web.views import Home, StudentDashbo
 
 urlpatterns = [
     path('', Home.as_view(), name='home'),
-    #path('accounts/login/', GoogleLoginRedirectView.as_view(), name='account login'),
+    #path('account/login/', GoogleLoginRedirectView.as_view(), name='account login'),
     path('dashboard-redirect/', DashboardRedirect.as_view(), name='dashboard redirect'),
     path('student/additional-info/', AdditionalStudentInfo.as_view(), name='additional info'),
     path('student/edit/categories/', EditStudentCategories.as_view(), name='edit student categories'),

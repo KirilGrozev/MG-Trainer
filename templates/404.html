@@ -1,4 +1,8 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/404.css' %}">
+{% endblock %}
 {% block title %}Страницата не беше намерена{% endblock %}
 
 {% block content %}

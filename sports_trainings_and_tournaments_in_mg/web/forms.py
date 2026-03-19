@@ -86,21 +86,29 @@ class EditMatchForm(forms.ModelForm):
 class CreateTeamForm(forms.ModelForm):
     class Meta:
         model = Team
-        exclude = ('students', 'achievements', 'is_active')
+        fields = ('name', 'number_of_players', 'grades')
 
         widgets = {
             'name': forms.TextInput(attrs={'placeholder': 'Enter Name'}),
             'numbers_of_players': forms.NumberInput(attrs={'placeholder': 'Enter Number Of Players'}),
             'grades': forms.CheckboxSelectMultiple(attrs={'placeholder': 'Choose Available Grades'}),
-            'category': forms.Select(attrs={'placeholder': 'Choose Category'})
         }
 
         labels = {
             'name': 'Name',
             'numbers_of_players': 'Number Of Players',
-            'grades': 'Grades',
-            'category': 'Category'
+            'grades': 'Grades'
         }
+
+    def __init__(self, *args, activity=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if activity and activity.grades.exists():
+            self.fields['grades'].queryset = activity.grades.all()
+            self.fields['grades'].required = True
+        else:
+            self.fields['grades'].queryset = Grade.objects.all()
+            self.fields['grades'].required = False
 
 
 class CreateActivityForm(forms.ModelForm):

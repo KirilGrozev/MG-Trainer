@@ -109,7 +109,7 @@ DATABASES = {
 
 CELERY_BEAT_SCHEDULE = {
     'promote_students_on_july_2': {
-        'task': 'web.tasks.promote_students',
+        'task': 'sports_trainings_and_tournaments_in_mg.web.tasks.promote_students',
         'schedule': crontab(
             minute=0,
             hour=3,
@@ -118,13 +118,17 @@ CELERY_BEAT_SCHEDULE = {
         ),
     },
     'send_upcoming_event_notifications_daily': {
-        'task': 'web.tasks.create_event_notifications',
+        'task': 'sports_trainings_and_tournaments_in_mg.web.tasks.create_event_notifications',
         'schedule': crontab(
-            hour=7,
-            minute=0
+            #hour=7,
+            minute='*/1*'
         ),
     },
 }
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
 
 
 # Password validation
@@ -186,10 +190,10 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
 
 ACCOUNT_ALLOW_REGISTRATION = False
-LOGIN_URL = '/accounts/login/'
+LOGIN_URL = '/account/login/'
 LOGIN_REDIRECT_URL = '/dashboard-redirect'
 SIGNUP_REDIRECT_URL = '/dashboard-redirect'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/account/login/'
 ACCOUNT_LOGOUT_ON_GET = True
 #SOCIALACCOUNT_ONLY = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'

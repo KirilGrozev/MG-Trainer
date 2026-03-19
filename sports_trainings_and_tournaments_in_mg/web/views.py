@@ -296,9 +296,9 @@ class ActivityDetails(LoginRequiredMixin, DetailView):
         context['match_actions'] = {}
         for m in activity.matches.all():
             if m.result:
-                context['match_actions'][m.id] = 'Archive match'
+                context['match_actions'][m.id] = 'Архивирай мач'
             else:
-                context['match_actions'][m.id] = 'Delete match'
+                context['match_actions'][m.id] = 'Изтрий мач'
 
         return context
 
@@ -384,12 +384,18 @@ class MatchDetails(LoginRequiredMixin, DetailView):
 
         already_in = match.teams.values_list('id', flat=True)
 
+        allowed_grades = match.activity.grades.all()
+
+        available_teams = Team.objects.filter(is_active=True, category=match.activity.category)
+
+        if allowed_grades.exists():
+            available_teams = available_teams.filter(
+                grades__in=allowed_grades
+            ).exclude(id__in=already_in).distinct()
+
         context['event'] = event
 
-        context['available_teams'] = Team.objects\
-            .filter(category=match.activity.category, is_active=True)\
-            .exclude(id__in=already_in).\
-            order_by('name')
+        context['available_teams'] = available_teams
 
         context['match_team_ids'] = set(
             TeamProfile.objects.filter(profile=profile, team__is_active=True)\
@@ -485,9 +491,21 @@ class CreateTeam(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         context['event_id'] = self.event_id
         return context
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['activity'] = self.match.activity
+        return kwargs
+
     def form_valid(self, form):
-        team = form.save()
+        team = form.save(commit=False)
+        team.category = self.match.activity.category
+        team.save()
         event_id = self.request.POST.get('event_id')
+
+        if not self.match.activity.allows_team(team):
+            form.add_error('grades', 'Избраните класове не са позволени за тази дейност.')
+            team.delete()
+            return self.form_invalid(form)
 
         try:
             TeamMatch.objects.create(match=self.match, team=team)
@@ -511,6 +529,10 @@ class AddExistingTeam(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect('match details', event_id=event_id, pk=match.pk)
 
         team = get_object_or_404(Team, pk=team_id)
+
+        if not match.activity.allows_team(team):
+            messages.error(request, "Този отбор не отговаря на ограниченията за класове на дейността.")
+            return redirect("match details", event_id=event_id, pk=match.pk)
 
         try:
             TeamMatch.objects.create(match=match, team=team)
@@ -677,11 +699,11 @@ class EventDetails(LoginRequiredMixin, DetailView):
             events_count = ActivityEvent.objects.filter(activity=a).count()
 
             if a.matches.exists():
-                context['activity_action'][a.id] = 'Archive activity'
+                context['activity_action'][a.id] = 'Архивирай дейността'
             elif events_count > 1:
-                context['activity_action'][a.id] = 'Remove activity'
+                context['activity_action'][a.id] = 'Премахни дейността'
             else:
-                context['activity_action'][a.id] = 'Delete activity'
+                context['activity_action'][a.id] = 'Изтрий дейността'
 
         return context
 
@@ -733,12 +755,16 @@ class RequestJoinTeam(LoginRequiredMixin, UserPassesTestMixin, View):
             messages.error(request, 'Ти имаш забрана за участие. Моля свържи се с учител.')
             return redirect('student dashboard')
 
+        if profile.grade not in team.grades.all():
+            messages.error(request, 'Не си от този клас.')
+            return redirect('match details', event_id=event_id, pk=match_id)
+
         if match.result:
-            messages.error(request, 'Този мач веще е приключил.')
+            messages.error(request, 'Този мач вече е приключил.')
             return redirect('match details', event_id=event_id, pk=match_id)
 
         if team_match.status != 'editing':
-            messages.error(request, 'Този отбор е заключен и веще не приема заявки.')
+            messages.error(request, 'Този отбор е заключен и вече не приема заявки.')
             return redirect('match details', event_id=event_id, pk=match_id)
 
         if team.students.count() >= team.number_of_players:

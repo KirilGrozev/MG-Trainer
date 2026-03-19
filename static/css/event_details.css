@@ -91,6 +91,15 @@
     transform: translateY(-1px);
 }
 
+.warning-btn {
+    background: #f2b705 !important;
+    color: #163955 !important;
+}
+
+.warning-btn:hover {
+    background: #d6a104 !important;
+}
+
 .secondary-btn {
     background: #eef3f9;
     color: #163955;

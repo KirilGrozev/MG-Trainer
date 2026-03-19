@@ -131,14 +131,6 @@ class GradeActivity(models.Model):
         on_delete=models.CASCADE
     )
 
-    def clean(self):
-        if self.profile.role != 'student':
-            raise ValidationError('Only students can be assigned to categories.')
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-
 
 class Category(models.Model):
     CATEGORY_CHOICES = (
@@ -532,6 +524,16 @@ class Activity(models.Model):
 
     def __str__(self):
         return self.name
+
+    def allows_team(self, team):
+        activity_grades = self.grades.all()
+
+        if not activity_grades.exists():
+            return True
+
+        return not team.grades.exclude(
+            id__in=activity_grades.values_list("id", flat=True)
+        ).exists()
 
 
 class Event(models.Model):

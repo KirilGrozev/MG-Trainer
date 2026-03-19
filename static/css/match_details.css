@@ -91,6 +91,18 @@
     flex-wrap: wrap;
 }
 
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #eef3f9;
+    color: #163955;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
 .meta-line {
     margin: 0 0 14px;
     color: #44556a;

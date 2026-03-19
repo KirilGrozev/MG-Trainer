@@ -18,6 +18,8 @@
             <div class="page-header-meta">
                 <span class="badge">Събитие: {{ event.name }}</span>
                 <span class="badge">Макс. отбори: {{ match.max_teams_per_match }}</span>
+                <span class="badge">Начален час: {{ match.start_time }}</span>
+                <span class="badge">Времетраене: {{ match.duration }} минути</span>
                 {% if match.is_finished %}
                     <span class="badge">Приключен</span>
                 {% else %}
@@ -62,13 +64,13 @@
                                 <h4 class="subsection-title">Участници</h4>
                                 <ul class="players-list">
                                     {% for s in tm.team.students.all %}
-                                        <li>{{ s.email }}</li>
+                                        <li>{{ s }}</li>
                                     {% empty %}
                                         <li class="empty-note">Все още няма участници.</li>
                                     {% endfor %}
                                 </ul>
 
-                                {% if not request.user.profile.is_banned_from_participation and request.user.profile.is_active and tm.status == 'editing' and not match.result and not match.is_finished %}
+                                {% if not request.user.profile.is_banned_from_participation and request.user.profile.is_active and request.user.profile.grade not in tm.team.grades.all and tm.status == 'editing' and not match.result and not match.is_finished %}
                                     <div class="actions-wrap">
                                         {% with action=team_actions|get_item:tm.team.id %}
                                             {% if action == 'join' %}
@@ -105,12 +107,14 @@
                                 {% endif %}
 
                                 {% if request.user.profile.role == 'teacher' %}
-                                    <div class="actions-wrap">
-                                        <button type="button" class="plain-toggle-btn"
-                                                onclick="document.getElementById('add-achievement-box-{{ tm.team.id }}').hidden = false;">
-                                            Добави постижение
-                                        </button>
-                                    </div>
+                                    {% if available_achievements %}
+                                        <div class="actions-wrap">
+                                            <button type="button" class="plain-toggle-btn"
+                                                    onclick="document.getElementById('add-achievement-box-{{ tm.team.id }}').hidden = false;">
+                                                Добави постижение
+                                            </button>
+                                        </div>
+                                    {% endif %}
 
                                     <div id="add-achievement-box-{{ tm.team.id }}" class="mini-form-panel" hidden>
                                         <form method="post" action="{% url 'add team achievements' tm.team.id %}">
@@ -151,7 +155,7 @@
                                         {% csrf_token %}
                                         <input type="hidden" name="match_id" value="{{ match.id }}">
                                         <input type="hidden" name="event_id" value="{{ event.id }}">
-                                        <button type="submit" class="danger-btn">Премахни от мача</button>
+                                        <button type="submit" class="danger-btn">Премахни мача</button>
                                     </form>
 
                                     {% if tm.status == 'editing' %}
@@ -177,7 +181,7 @@
                             <h4 class="subsection-title">Постижения</h4>
                             <ul class="achievements-list">
                                 {% for a in tm.team.achievements.all %}
-                                    <li>{{ a.name }}</li>
+                                    <li>{{ a.name }} - {{ a.award }}</li>
                                 {% empty %}
                                     <li class="empty-note">Все още няма постижения.</li>
                                 {% endfor %}
@@ -193,14 +197,16 @@
 
                 {% if request.user.profile.role == 'teacher' and match.teams.count < match.max_teams_per_match %}
                     <div class="global-actions" style="margin-top: 22px;">
-                        <button type="button" class="plain-toggle-btn"
-                                onclick="document.getElementById('add-team-box').hidden = false;">
-                            Добави съществуващ отбор
-                        </button>
+                        {% if available_teams %}
+                            <button type="button" class="plain-toggle-btn"
+                                    onclick="document.getElementById('add-team-box').hidden = false;">
+                                Добави съществуващ отбор
+                            </button>
+                        {% endif %}
 
                         <form method="get" action="{% url 'create team' match.id %}">
                             <input type="hidden" name="event_id" value="{{ event.id }}">
-                            <button type="submit">Създай отбор</button>
+                            <button type="submit" class="plain-toggle-btn">Създай отбор</button>
                         </form>
                     </div>
 
@@ -260,9 +266,9 @@
                             {{ result_form.as_p }}
 
                             {% if match.is_finished %}
-                                <button type="submit">Запази резултата</button>
+                                <button type="submit" class="plain-toggle-btn">Запази резултата</button>
                             {% else %}
-                                <button type="submit" disabled>Запази резултата</button>
+                                <button type="submit" class="plain-toggle-btn" disabled>Запази резултата</button>
                                 <p class="disabled-note">Резултат може да бъде запазен само когато мачът е
                                     приключил.</p>
                             {% endif %}

@@ -2,7 +2,7 @@
 {% load static %}
 {% load dict_extras %}
 {% block additional_css %}
-    <link rel="stylesheet" href="{% static 'css/event_details.css'%}">
+    <link rel="stylesheet" href="{% static 'css/event_details.css' %}">
 {% endblock %}
 {% block title %}Детайли за събитие{% endblock %}
 {% block content %}
@@ -111,11 +111,13 @@
 
             <div class="section-card-body">
                 {% if request.user.profile.role == 'teacher' %}
-                    <div class="top-actions">
-                        <button type="button" class="plain-toggle-btn" onclick="document.getElementById('add-achievement-box').hidden = false;">
-                            Добави постижение
-                        </button>
-                    </div>
+                    {% if available_achievements %}
+                        <div class="top-actions">
+                            <button type="button" class="plain-toggle-btn" onclick="document.getElementById('add-achievement-box').hidden = false;">
+                                Добави постижение
+                            </button>
+                        </div>
+                    {% endif %}
 
                     <div id="add-achievement-box" class="mini-form-panel" hidden>
                         <form method="post" action="{% url 'add event achievement' event.pk %}">
@@ -140,7 +142,7 @@
                 <div class="achievements-grid" style="margin-top: 18px;">
                     {% for a in event.achievements.all %}
                         <div class="achievement-card">
-                            <h3>{{ a.name }}</h3>
+                            <h3>{{ a.name }} - {{ a.award }}</h3>
                             <p class="muted-text">Постижение, свързано със събитието.</p>
                         </div>
                     {% empty %}

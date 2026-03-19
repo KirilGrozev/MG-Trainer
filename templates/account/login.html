@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load socialaccount %}
+{% block additional_css %}
+    <link rel="stylesheet" href="{% static 'css/base_from.css' %}">
+{% endblock %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-panel">
+        <div class="form-panel-header">
+            <h2>Вход в системата</h2>
+            <p>Влез в профила си, за да достъпиш събитията, отборите и заявките.</p>
+        </div>
+
+        <div class="form-panel-body">
+            <form method="post" action="{% url 'account_login' %}">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+                {% endif %}
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-main">Вход</button>
+                </div>
+            </form>
+
+            <div class="auth-extra" style="margin-top: 18px;">
+                <p class="muted-text">Или използвай Google акаунт:</p>
+
+                <a href="{% provider_login_url 'google' %}" class="btn-secondary-link">
+                    Вход с Google
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

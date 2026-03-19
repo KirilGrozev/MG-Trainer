@@ -39,6 +39,9 @@
                         <li><a href="{% url 'create event' %}">Създай събитие</a></li>
                         <li><a href="{% url 'create achievement' %}">Създай постижение</a></li>
                         <li><a href="{% url 'all team requests' %}">Заявки</a></li>
+                        <li><a href="{% url 'teacher dashboard' %}">Учителско табло</a></li>
+                    {% else %}
+                        <li><a href="{% url 'student dashboard' %}">Ученическо табло</a></li>
                     {% endif %}
 
                     <li><a href="{% url 'calendar' %}">Календар</a></li>
