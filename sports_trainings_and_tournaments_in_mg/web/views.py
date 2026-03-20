@@ -459,6 +459,7 @@ class MatchResultView(LoginRequiredMixin, UserPassesTestMixin, View):
         event_id = request.POST.get('event_id')
 
         if not match.is_finished():
+            messages.error(request, 'Мачът не е приключил.')
             return redirect('match details', event_id=event_id, pk=match.pk)
 
         FormClass = self.get_form_class(match)
@@ -531,8 +532,8 @@ class AddExistingTeam(LoginRequiredMixin, UserPassesTestMixin, View):
         team = get_object_or_404(Team, pk=team_id)
 
         if not match.activity.allows_team(team):
-            messages.error(request, "Този отбор не отговаря на ограниченията за класове на дейността.")
-            return redirect("match details", event_id=event_id, pk=match.pk)
+            messages.error(request, 'Този отбор не отговаря на ограниченията за класове на дейността.')
+            return redirect('match details', event_id=event_id, pk=match.pk)
 
         try:
             TeamMatch.objects.create(match=match, team=team)
@@ -553,6 +554,7 @@ class RemoveTeam(LoginRequiredMixin, UserPassesTestMixin, View):
         event_id = request.POST.get('event_id')
 
         if match.result:
+            messages.error(request, 'Мачът няма резултат.')
             return redirect('match details', event_id=event_id, pk=match.pk)
 
         TeamMatch.objects.filter(match=match, team=team).delete()
@@ -755,7 +757,7 @@ class RequestJoinTeam(LoginRequiredMixin, UserPassesTestMixin, View):
             messages.error(request, 'Ти имаш забрана за участие. Моля свържи се с учител.')
             return redirect('student dashboard')
 
-        if profile.grade not in team.grades.all():
+        if team.grades.exists() and profile.grade not in team.grades.all():
             messages.error(request, 'Не си от този клас.')
             return redirect('match details', event_id=event_id, pk=match_id)
 
@@ -803,7 +805,7 @@ class CancelTeamRequest(LoginRequiredMixin, UserPassesTestMixin, View):
         if deleted:
             messages.success(request, 'Зачката бе отхвърлена')
         else:
-            messages.info(request, 'Няма чакащи зачвки за отхвърляне.')
+            messages.info(request, 'Няма чакащи заявки за отхвърляне.')
 
         return redirect('match details', event_id=event_id, pk=match_id)
 
@@ -900,6 +902,7 @@ class LeaveTeam(LoginRequiredMixin, UserPassesTestMixin, View):
         event_id = request.POST.get('event_id')
 
         if not profile.is_active:
+            messages.error(request, 'Профилът не е активен.')
             return redirect('match details', event_id=event_id, pk=match_id)
 
         TeamProfile.objects.filter(team=team, profile=profile).delete()
@@ -919,6 +922,7 @@ class AddAbsence(LoginRequiredMixin, UserPassesTestMixin, View):
         student = get_object_or_404(Profile, pk=profile_id)
 
         if not student.is_active:
+            messages.error(request, 'Профилът не е активен.')
             return redirect('teacher dashboard')
 
         student.add_absence()
@@ -933,6 +937,7 @@ class ResetAbsenceBan(LoginRequiredMixin, UserPassesTestMixin, View):
         student = get_object_or_404(Profile, pk=profile_id)
 
         if not student.is_active:
+            messages.error(request, 'Профилът не е активен.')
             return redirect('teacher dashboard')
 
         student.reset_absence_ban()
@@ -992,3 +997,7 @@ def move_calendar_event(request, pk):
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
+
+
+def custom_403(request, exception):
+    return render(request, '403.html', status=403)

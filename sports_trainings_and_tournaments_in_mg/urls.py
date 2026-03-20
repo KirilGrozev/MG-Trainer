@@ -24,3 +24,6 @@ urlpatterns = [
     path('', include('sports_trainings_and_tournaments_in_mg.web.urls')),
     path('account/', include('allauth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+handler404 = 'sports_trainings_and_tournaments_in_mg.web.views.custom_404'
+handler403 = 'sports_trainings_and_tournaments_in_mg.web.views.custom_403'

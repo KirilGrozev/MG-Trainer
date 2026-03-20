@@ -54,4 +54,3 @@ urlpatterns = [
     path('api/calendar/events/<int:pk>/move/', move_calendar_event, name='move calendar event')
 ]
 
-handler404 = 'sports_trainings_and_tournaments_in_mg.web.views.custom_404'

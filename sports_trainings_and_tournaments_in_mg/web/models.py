@@ -113,6 +113,10 @@ class Grade(models.Model):
         null=True,
         blank=True
     )
+    last_promoted_year = models.PositiveIntegerField(
+        null=True,
+        blank=True
+    )
 
     class Meta:
         unique_together = ('grade', 'class_letter')
@@ -250,15 +254,7 @@ class Team(models.Model):
         return self.students.count() >= self.number_of_players
 
     def can_student_request(self, profile, match):
-        team_match = TeamMatch(team=self, match=match)
-
         if profile.role != 'student':
-            return False
-
-        if not team_match.status == 'editing':
-            return False
-
-        if match.result:
             return False
 
         if self.students.filter(pk=profile.pk).exists():

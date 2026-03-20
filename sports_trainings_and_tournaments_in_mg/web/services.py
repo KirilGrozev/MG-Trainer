@@ -1,57 +1,79 @@
 from datetime import timedelta
 
-from django.db import models, transaction
+from django.db import transaction
 from django.utils import timezone
 
 from .models import Profile, Event, Notification
-from django.contrib.auth import get_user_model
 
 FINAL_GRADE = 13
 
 
 @transaction.atomic
 def promote_students_and_graduate():
-    user = get_user_model()
+    today = timezone.now().date()
+    curr_year = today.year
 
-    qs = (
-        Profile.objects.select_for_update()
-        .select_related('user')
-        .filter(role='student')
-        .exclude(grade__isnull=True)
-    )
+    if 10 < today.month < 7:
+        return
 
-    qs.filter(grade__lt=FINAL_GRADE - 1).update(grade=models.F('grade') + 1)
+    students = Profile.objects.filter(
+        role='student',
+        is_active=True
+    ).select_related('grade')
 
-    graduating = qs.filter(grade__gte=FINAL_GRADE - 1)
+    for profile in students:
+        grade_obj = getattr(profile, 'grade', None)
 
-    graduating_user_ids = list(graduating.values_list('user_id', flat=True))
+        if not grade_obj:
+            continue
 
-    user.profile.objects.filter(id__in=graduating_user_ids).update(is_active=False)
+        if grade_obj.last_promoted_year == curr_year:
+            continue
+
+        current_grade = grade_obj.grade
+
+        if current_grade >= FINAL_GRADE:
+            grade_obj.last_promoted_year = curr_year
+            grade_obj.save(update_fields=['last_promoted_year'])
+            continue
+
+        if current_grade == 12:
+            grade_obj.grade = FINAL_GRADE
+            grade_obj.last_promoted_year = curr_year
+            profile.is_active = False
+
+            profile.save(update_fields=['is_active'])
+            grade_obj.save(update_fields=['grade', 'last_promoted_year'])
+            continue
+
+        grade_obj.grade += 1
+        grade_obj.last_promoted_year = curr_year
+        grade_obj.save(update_fields=['grade', 'last_promoted_year'])
 
 
-@transaction.atomic
-def create_upcoming_event_notifications():
+def create_upcoming_event_notifications(profile):
+    if not profile.is_active or profile.is_banned_from_participation:
+        return
+
     today = timezone.now().date()
     upcoming_limit = today + timedelta(days=3)
 
-    upcoming_events = Event.objects.filter(
-        date__gte=today,
-        date__lte=upcoming_limit,
-        is_active=True,
-    ).distinct()
-
-    for event in upcoming_events:
-        students = Profile.objects.filter(
-            teamprofile__team__matches__activity__events=event,
-            role='student',
+    events = (
+        Event.objects.filter(
+            date__gte=today,
+            date__lte=upcoming_limit,
             is_active=True,
-            is_banned_from_participation=False,
-        ).distinct()
+            activities__matches__teams__students=profile,
+        )
+        .distinct()
+    )
 
-        for student in students:
-            Notification.objects.get_or_create(
-                profile=student,
-                event=event,
-                title=f'Upcoming event: {event.name}',
-                message=f'You are participating in {event.name} on {event.date}.',
-            )
+    for event in events:
+        Notification.objects.get_or_create(
+            profile=profile,
+            event=event,
+            defaults={
+                'title': f'Предстоящо събитие: {event.name}',
+                'message': f'Участваш в {event.name}, което ще се проведе на {event.date}.',
+            },
+        )

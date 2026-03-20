@@ -3,30 +3,30 @@
 {% block additional_css %}
     <link rel="stylesheet" href="{% static 'css/error.css' %}">
 {% endblock %}
-{% block title %}Страницата не беше намерена{% endblock %}
+{% block title %}Нямаш достъп до тази страница{% endblock %}
 
 {% block content %}
     <div class="error-page">
         <div class="error-card">
             <div class="error-card-header">
-                <p class="error-code">404</p>
-                <h1 class="error-title">Страницата не беше намерена</h1>
+                <p class="error-code">403</p>
+                <h1 class="error-title">Нямаш достъп до тази страница</h1>
             </div>
 
             <div class="error-card-body">
                 <p>
-                    Страницата, която търсиш, не съществува или вече не е налична.
-                    Възможно е адресът да е грешен или съдържанието да е преместено.
+                    Нямаш необходимите права, за да отвориш тази страница или да извършиш това действие.
+                    Ако смяташ, че това е грешка, свържи се с администратор или учител.
                 </p>
 
                 <div class="error-actions">
                     {% if request.user.is_authenticated %}
                         {% if request.user.profile.role == 'teacher' %}
-                            <a href="{% url 'teacher dashboard' %}" class="error-btn error-btn-main">Към
+                            <a href="{% url 'teacher dashboard' %}" class="error-btn error-btn-secondary">Към
                                 учителското табло</a>
                         {% else %}
                             <a href="{% url 'student dashboard' %}" class="error-btn error-btn-secondary">Към
-                                началната страница</a>
+                                ученическото табло</a>
                         {% endif %}
                     {% else %}
                         <a href="{% url 'account_login' %}" class="error-btn error-btn-main">Към вход</a>
@@ -34,7 +34,7 @@
                 </div>
 
                 <p class="error-note">
-                    Провери адреса или използвай навигацията на сайта, за да продължиш.
+                    Провери дали си влязъл с правилния профил и дали имаш достъп до тази функционалност.
                 </p>
             </div>
         </div>

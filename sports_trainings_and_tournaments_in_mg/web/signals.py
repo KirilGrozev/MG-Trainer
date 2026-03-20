@@ -1,10 +1,9 @@
 from allauth.account.signals import user_signed_up
-from django.core.exceptions import ValidationError
-from django.db.models.signals import m2m_changed
+from allauth.socialaccount.signals import social_account_added
+from django.contrib.auth import user_logged_in
 from django.dispatch import receiver
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from .models import Profile, Grade, Match
+from .models import Profile, Grade
+from .services import create_upcoming_event_notifications, promote_students_and_graduate
 
 
 @receiver(user_signed_up)
@@ -22,3 +21,19 @@ def create_profile(request, user, **kwargs):
         user.save()
 
     profile.save()
+
+
+@receiver(user_logged_in)
+def create_notifications_on_log_in(sender, request, user, **kwargs):
+    profile = user.profile
+
+    if profile.role == 'student' and profile.is_active:
+        create_upcoming_event_notifications(profile)
+
+
+@receiver(user_logged_in)
+def promote_students_graduate_on_log_in(sender, request, user, **kwargs):
+    profile = user.profile
+
+    if profile.role == 'teacher':
+        promote_students_and_graduate()
