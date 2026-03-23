@@ -55,6 +55,7 @@
 
 .form-panel input[type="text"],
 .form-panel input[type="email"],
+.form-panel input[type="password"],
 .form-panel input[type="number"],
 .form-panel input[type="date"],
 .form-panel input[type="datetime-local"],

@@ -55,9 +55,9 @@ class Profile(models.Model):
 
     def remove_from_participation(self):
         future_events = Event.objects.filter(date__gte=timezone.now().date())
-        TeamProfile.objects.filter(
+        TeamMatchProfile.objects.filter(
             profile=self,
-            team__matches__activity__events__in=future_events
+            team_match__matches__activity__events__in=future_events
         ).delete()
 
         TeamPermissionRequest.objects.filter(student=self, status='pending').delete()
@@ -138,12 +138,12 @@ class GradeActivity(models.Model):
 
 class Category(models.Model):
     CATEGORY_CHOICES = (
-        ('football', 'football'),
-        ('basketball', 'basketball'),
-        ('volleyball', 'volleyball'),
-        ('table tennis', 'table tennis'),
-        ('running', 'running'),
-        ('badminton', 'badminton')
+        ('football', 'футбол'),
+        ('volleyball', 'волейбол'),
+        ('basketball', 'баскетбол'),
+        ('table tennis', 'тенис на маса'),
+        ('running', 'бягане'),
+        ('badminton', 'бадминтон')
     )
     MAX_CATEGORY_LENGTH = max(len(c) for c, _ in CATEGORY_CHOICES)
 
@@ -154,7 +154,15 @@ class Category(models.Model):
     )
 
     def __str__(self):
-        return self.category
+        translations = {
+            'football': 'футбол',
+            'volleyball': 'волейбол',
+            'basketball': 'баскетбол',
+            'table tennis': 'тенис на маса',
+            'running': 'бягане',
+            'badminton': 'бадминтон'
+        }
+        return translations.get(self.category.lower(), self.category)
 
 
 class ProfileCategory(models.Model):
@@ -172,7 +180,7 @@ class ProfileCategory(models.Model):
 
     def clean(self):
         if self.profile.role != 'student':
-            raise ValidationError('Only students can be assigned to categories.')
+            raise ValidationError('Само ученици могат да имат категории.')
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -226,12 +234,6 @@ class Team(models.Model):
         on_delete=models.CASCADE,
         related_name='teams'
     )
-    students = models.ManyToManyField(
-        Profile,
-        through='TeamProfile',
-        related_name='teams',
-        blank=True
-    )
     grades = models.ManyToManyField(
         Grade,
         through='GradeTeam',
@@ -249,52 +251,6 @@ class Team(models.Model):
 
     def __str__(self):
         return self.name
-
-    def is_full(self):
-        return self.students.count() >= self.number_of_players
-
-    def can_student_request(self, profile, match):
-        if profile.role != 'student':
-            return False
-
-        if self.students.filter(pk=profile.pk).exists():
-            return False
-
-        if self.requests.filter(student=profile, status='pending').exists():
-            return False
-
-        if TeamProfile.objects.filter(profile=profile, team__teammatch__match=match).exists():
-            return False
-
-        return True
-
-    def can_student_cancel_request(self, profile):
-        return self.requests.filter(student=profile, status='pending').exists()
-
-    def can_student_leave(self, profile):
-        return self.students.filter(pk=profile.pk).exists()
-
-
-class TeamProfile(models.Model):
-    profile = models.ForeignKey(
-        Profile,
-        on_delete=models.CASCADE
-    )
-    team = models.ForeignKey(
-        Team,
-        on_delete=models.CASCADE
-    )
-
-    class Meta:
-        unique_together = ('profile', 'team')
-
-    def clean(self):
-        if self.profile.role != 'student':
-            raise ValidationError('Only students can participate in teams.')
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
 
 
 class GradeTeam(models.Model):
@@ -383,7 +339,7 @@ class Match(models.Model):
 
         if not self.result:
             if self.is_finished():
-                raise ValidationError('Finished matches must have a result.')
+                raise ValidationError('Приключили мачове трябва да имат резултат.')
             return
 
         category = self.activity.category.category.lower()
@@ -396,20 +352,20 @@ class Match(models.Model):
 
             score_team_ids = {int(k) for k in scores.keys()}
             if score_team_ids != team_ids:
-                raise ValidationError('Scores must include all participating teams.')
+                raise ValidationError('Резултатите трябва да включват всички участващи отбори.')
 
             for value in scores.values():
                 if not isinstance(value, int) or value < 0:
-                    raise ValidationError('Scores must be non-negative integers.')
+                    raise ValidationError('Резултите трябва да са неотрицателни числа')
 
         elif category in self.PLACEMENT_CATEGORIES:
             placements = self.result.get('placements')
             if not isinstance(placements, list):
-                raise ValidationError('Race results must include placements.')
+                raise ValidationError('Резултатите от съзтезанието трябва да включва позициите.')
 
             placement_team_ids = {p['team_id'] for p in placements}
             if placement_team_ids != team_ids:
-                raise ValidationError('Placements must include all teams exactly once.')
+                raise ValidationError('Позициите трябва да съдържат само един отбор')
 
     def winners(self):
         if not self.result:
@@ -452,8 +408,8 @@ class Match(models.Model):
 
 class TeamMatch(models.Model):
     STATUS_CHOICES = (
-        ('editing', 'editing'),
-        ('locked', 'locked'),
+        ('editing', 'редактира се'),
+        ('locked', 'заключен'),
     )
     MAX_STATUS_LENGTH = max(len(s) for s, _ in STATUS_CHOICES)
 
@@ -472,9 +428,36 @@ class TeamMatch(models.Model):
         choices=STATUS_CHOICES,
         default='editing'
     )
+    students = models.ManyToManyField(
+        Profile,
+        through='TeamMatchProfile',
+        related_name='student_team_matches',
+        blank=True
+    )
 
     class Meta:
         unique_together = ('team', 'match')
+
+    def is_full(self):
+        return self.students.count() >= self.team.number_of_players
+
+    def can_student_request(self, profile):
+        if profile.role != 'student':
+            return False
+
+        if self.team.requests.filter(student=profile, status='pending').exists():
+            return False
+
+        if self.students.filter(user=profile.user).exists():
+            return False
+
+        return True
+
+    def can_student_cancel_request(self, profile):
+        return self.team.requests.filter(student=profile, status='pending').exists()
+
+    def can_student_leave(self, profile):
+        return self.students.filter(pk=profile.pk).exists()
 
     def clean(self):
         if not self.match_id:
@@ -484,12 +467,26 @@ class TeamMatch(models.Model):
 
         if not self.pk and current_count >= self.match.max_teams_per_match:
             raise ValidationError(
-                f"Max {self.match.max_teams_per_match} teams allowed for this match."
+                f'Максимално {self.match.max_teams_per_match} отбори са позволени за този мач.'
             )
 
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
+
+
+class TeamMatchProfile(models.Model):
+    profile = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE
+    )
+    team_match = models.ForeignKey(
+        TeamMatch,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = ('profile', 'team_match')
 
 
 class Activity(models.Model):
@@ -582,12 +579,12 @@ class ProfileEvent(models.Model):
     profile = models.ForeignKey(
         Profile,
         on_delete=models.CASCADE,
-        related_name='profile'
+        related_name='profiles'
     )
     event = models.ForeignKey(
         Event,
         on_delete=models.CASCADE,
-        related_name='event'
+        related_name='events'
     )
 
     class Meta:
@@ -595,7 +592,7 @@ class ProfileEvent(models.Model):
 
     def clean(self):
         if self.profile.role != 'student':
-            raise ValidationError('Only students can participate in events.')
+            raise ValidationError('Само ученици могат да участват в събития.')
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -618,9 +615,9 @@ class EventAchievement(models.Model):
 
 class TeamPermissionRequest(models.Model):
     STATUS_CHOICES = (
-        ('pending', 'pending'),
-        ('approved', 'approved'),
-        ('rejected', 'rejected')
+        ('pending', 'чакащ'),
+        ('approved', 'одобрен'),
+        ('rejected', 'отхвърлен')
     )
     MAX_STATUS_LENGTH = max((len(s) for s, _ in STATUS_CHOICES))
 

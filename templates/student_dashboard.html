@@ -73,8 +73,8 @@
                                         {% if a.is_active %}
                                             {% for m in a.matches.all %}
                                                 {% if m.is_active %}
-                                                    {% for t in m.teams.all %}
-                                                        {% if request.user.profile in t.students.all and t.is_active %}
+                                                    {% for tm in m.team_matches.all %}
+                                                        {% if request.user.profile in tm.students.all and tm.team.is_active %}
                                                             <div class="nested-item">
                                                                 <h4>Предстоящ мач</h4>
                                                                 <p class="muted-text">Начало: {{ m.start_time }}</p>
@@ -139,7 +139,7 @@
                                 <div class="request-card">
                                     <div class="card-main">
                                         <h3>Заявка</h3>
-                                        <p class="muted-text">Статус: {{ mr.status }}</p>
+                                        <p class="muted-text">Статус: {{ mr.get_status_display }}</p>
                                     </div>
                                 </div>
                             {% empty %}
@@ -159,11 +159,11 @@
 
                     <div class="section-card-body">
                         <div class="cards-grid">
-                            {% for t in my_teams %}
-                                {% if t.is_active %}
+                            {% for tm in my_teams %}
+                                {% if tm.team.is_active %}
                                     <div class="team-card">
                                         <div class="card-main">
-                                            <h3>{{ t.name }}</h3>
+                                            <h3>{{ tm.team.name }}</h3>
                                             <p class="muted-text">Активен отбор, в който участваш.</p>
                                         </div>
                                     </div>

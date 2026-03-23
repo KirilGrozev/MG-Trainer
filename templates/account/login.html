@@ -2,7 +2,7 @@
 {% load static %}
 {% load socialaccount %}
 {% block additional_css %}
-    <link rel="stylesheet" href="{% static 'css/base_from.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base_form.css' %}">
 {% endblock %}
 
 {% block title %}Вход{% endblock %}
@@ -18,7 +18,12 @@
         <div class="form-panel-body">
             <form method="post" action="{% url 'account_login' %}">
                 {% csrf_token %}
-                {{ form.as_p }}
+
+                <label>Имейл:</label>
+                <input type="text" name="login" placeholder="Имейл" class="input-field">
+
+                <label>Парола:</label>
+                <input type="password" name="password" placeholder="Парола" class="input-field">
 
                 {% if redirect_field_value %}
                     <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">

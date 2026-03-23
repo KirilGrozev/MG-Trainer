@@ -22,10 +22,10 @@
                 <div class="error-actions">
                     {% if request.user.is_authenticated %}
                         {% if request.user.profile.role == 'teacher' %}
-                            <a href="{% url 'teacher dashboard' %}" class="error-btn error-btn-secondary">Към
+                            <a href="{% url 'teacher dashboard' %}" class="error-btn error-btn-main">Към
                                 учителското табло</a>
                         {% else %}
-                            <a href="{% url 'student dashboard' %}" class="error-btn error-btn-secondary">Към
+                            <a href="{% url 'student dashboard' %}" class="error-btn error-btn-main">Към
                                 ученическото табло</a>
                         {% endif %}
                     {% else %}

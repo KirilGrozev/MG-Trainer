@@ -7,7 +7,7 @@ from sports_trainings_and_tournaments_in_mg.web.views import Home, StudentDashbo
     RejectTeamRequest, AllTeamRequests, EditActivity, AddExistingTeam, LeaveTeam, CancelTeamRequest, \
     AddEventAchievement, AddTeamAchievement, calendar_events, move_calendar_event, AddAbsence, ResetAbsenceBan, \
     student_email_suggestions, RemoveTeam, ArchiveTeam, EditMatch, ArchiveMatch, ArchiveEvent, ArchiveActivity, \
-    UnlockTeam
+    UnlockTeam, RemoveStudent
 
 urlpatterns = [
     path('', Home.as_view(), name='home'),
@@ -35,6 +35,7 @@ urlpatterns = [
     path('teacher/match/<int:pk>/team/add', AddExistingTeam.as_view(), name='add existing team'),
     path('teacher/remove/team/<int:pk>/', RemoveTeam.as_view(), name='remove team'),
     path('student/leave/team/<int:pk>/', LeaveTeam.as_view(), name='leave team'),
+    path('teacher/remove/student/team/<int:pk>/', RemoveStudent.as_view(), name='remove student'),
     path('teacher/archive/team/<int:pk>/', ArchiveTeam.as_view(), name='archive team'),
     path('teacher/create/achievement/', CreateAchievement.as_view(), name='create achievement'),
     path('teacher/create/event/', CreateEvent.as_view(), name='create event'),

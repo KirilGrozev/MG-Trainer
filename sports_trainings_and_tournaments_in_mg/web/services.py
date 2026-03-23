@@ -63,7 +63,7 @@ def create_upcoming_event_notifications(profile):
             date__gte=today,
             date__lte=upcoming_limit,
             is_active=True,
-            activities__matches__teams__students=profile,
+            activities__matches__team_matches__students=profile,
         )
         .distinct()
     )

@@ -23,13 +23,13 @@ class EditGradeForm(forms.ModelForm):
         fields = ('grade', 'class_letter')
 
         widgets = {
-            'grade': forms.Select(attrs={'placeholder': 'Enter Grade'}),
-            'class_letter': forms.Select(attrs={'placeholder': 'Enter Class Letter'})
+            'grade': forms.Select(attrs={'placeholder': 'Въведи клас'}),
+            'class_letter': forms.Select(attrs={'placeholder': 'Въведи паралелка'})
         }
 
         labels = {
-            'grade': 'Grade',
-            'class_letter': 'Class Letter'
+            'grade': 'Клас',
+            'class_letter': 'Паралелка'
         }
 
 
@@ -39,15 +39,15 @@ class CreateAchievementForm(forms.ModelForm):
         fields = '__all__'
 
         widgets = {
-            'name': forms.TextInput(attrs={'placeholder': 'Enter Name'}),
-            'description': forms.Textarea(attrs={'rows': 5, 'cols': 70, 'placeholder': 'Enter Description'}),
-            'award': forms.TextInput(attrs={'placeholder': 'Enter Prize'}),
+            'name': forms.TextInput(attrs={'placeholder': 'Въведи име'}),
+            'description': forms.Textarea(attrs={'rows': 5, 'cols': 70, 'placeholder': 'Въведи описание'}),
+            'award': forms.TextInput(attrs={'placeholder': 'Въведи награда'}),
         }
 
         labels = {
-            'name': 'Name',
-            'description': 'Description',
-            'award': 'Prize',
+            'name': 'Име',
+            'description': 'Описание',
+            'award': 'Награда',
         }
 
 
@@ -57,17 +57,17 @@ class CreateMatchForm(forms.ModelForm):
         fields = ('label', 'max_teams_per_match', 'start_time', 'duration')
 
         widgets = {
-            'label': forms.TextInput(attrs={'placeholder': 'Enter Label'}),
-            'max_teams_per_match': forms.NumberInput(attrs={'placeholder': 'Enter Max Teams Per Match'}),
-            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'placeholder': 'Enter Start Time'}),
-            'duration': forms.NumberInput(attrs={'placeholder': 'Enter Duration'})
+            'label': forms.TextInput(attrs={'placeholder': 'Въведи наименование'}),
+            'max_teams_per_match': forms.NumberInput(attrs={'placeholder': 'Въведи максимален брой отбори'}),
+            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'placeholder': 'Въведи начален час'}),
+            'duration': forms.NumberInput(attrs={'placeholder': 'Въведи времетраене'})
         }
 
         labels = {
-            'label': 'Label',
-            'max_teams_per_match': 'Max Teams Per Team',
-            'start_time': 'Start Time',
-            'duration': 'Duration'
+            'label': 'Наименование',
+            'max_teams_per_match': 'Максимален брой отбори  ',
+            'start_time': 'Начален час',
+            'duration': 'Времетраене'
         }
 
 
@@ -77,9 +77,9 @@ class EditMatchForm(forms.ModelForm):
         fields = ('label', 'start_time', 'duration')
 
     labels = {
-        'label': 'Label',
-        'start_time': 'Start Time',
-        'duration': 'Duration'
+        'label': 'Наименование',
+        'start_time': 'Начален час',
+        'duration': 'Времетраене'
     }
 
 
@@ -89,15 +89,15 @@ class CreateTeamForm(forms.ModelForm):
         fields = ('name', 'number_of_players', 'grades')
 
         widgets = {
-            'name': forms.TextInput(attrs={'placeholder': 'Enter Name'}),
-            'numbers_of_players': forms.NumberInput(attrs={'placeholder': 'Enter Number Of Players'}),
-            'grades': forms.CheckboxSelectMultiple(attrs={'placeholder': 'Choose Available Grades'}),
+            'name': forms.TextInput(attrs={'placeholder': 'Въведи име'}),
+            'numbers_of_players': forms.NumberInput(attrs={'placeholder': 'Въведи брой играчи'}),
+            'grades': forms.CheckboxSelectMultiple(attrs={'placeholder': 'Избери класове'}),
         }
 
         labels = {
-            'name': 'Name',
-            'numbers_of_players': 'Number Of Players',
-            'grades': 'Grades'
+            'name': 'Име',
+            'numbers_of_players': 'Брой играчи',
+            'grades': 'Класове'
         }
 
     def __init__(self, *args, activity=None, **kwargs):
@@ -117,17 +117,17 @@ class CreateActivityForm(forms.ModelForm):
         exclude = ('is_active', 'events')
 
         widgets = {
-            'name': forms.TextInput(attrs={'placeholder': 'Enter Name'}),
-            'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'placeholder': 'Enter A Date'}),
-            'category': forms.Select(attrs={'placeholder': 'Choose Category'}),
-            'grades': forms.CheckboxSelectMultiple(attrs={'placeholder': 'Choose Available Grades'}),
+            'name': forms.TextInput(attrs={'placeholder': 'Въведи име'}),
+            'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'placeholder': 'Въведи дата'}),
+            'category': forms.Select(attrs={'placeholder': 'Избери категория'}),
+            'grades': forms.CheckboxSelectMultiple(attrs={'placeholder': 'Избери класове'}),
         }
 
         labels = {
-            'name': 'Name',
-            'date': 'Date',
-            'category': 'Category',
-            'grades': 'Grades'
+            'name': 'Име',
+            'date': 'Дата',
+            'category': 'Категория',
+            'grades': 'Класове'
         }
 
 
@@ -137,9 +137,9 @@ class EditActivityForm(forms.ModelForm):
         fields = ('name', 'date', 'grades')
 
         labels = {
-            'name': 'Name',
-            'date': 'Date',
-            'grades': 'Grades'
+            'name': 'Име',
+            'date': 'Дата',
+            'grades': 'Класове'
         }
 
 
@@ -149,13 +149,13 @@ class CreateEventForm(forms.ModelForm):
         fields = ('name', 'date')
 
         widgets = {
-            'name': forms.TextInput(attrs={'placeholder': 'Enter Name'}),
-            'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'placeholder': 'Enter The Event Date'}),
+            'name': forms.TextInput(attrs={'placeholder': 'Въведи име'}),
+            'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'placeholder': 'Въведи дата'}),
         }
 
         labels = {
-            'name': 'Name',
-            'date': 'Event Date',
+            'name': 'Име',
+            'date': 'Дата',
         }
 
 
@@ -166,7 +166,7 @@ class ScoreResultForm(forms.Form):
         self.teams = list(match.teams.all())
 
         if len(self.teams) < 2:
-            raise ValidationError('A score result requires at least 2 teams.')
+            raise ValidationError('За резултат трябват поне 2 отбора!')
 
         existing_scores = {}
         if isinstance(match.result, dict):
@@ -196,7 +196,7 @@ class RaceResultForm(forms.Form):
         self.teams = list(match.teams.all())
 
         if len(self.teams) < 2:
-            raise ValidationError('A race result requires at least 2 teams.')
+            raise ValidationError('За резултат трябват поне 2 отбора!')
 
         existing_placements = {}
         if isinstance(match.result, dict):
@@ -225,7 +225,7 @@ class RaceResultForm(forms.Form):
                 values.append(value)
 
         if len(values) != len(set(values)):
-            raise forms.ValidationError('Placements must be unique.')
+            raise forms.ValidationError('Класирането трябва да е уникално')
 
         return cleaned
 
@@ -233,14 +233,14 @@ class RaceResultForm(forms.Form):
         placements = []
         for team in self.teams:
             placements.append({
-                "team_id": team.id,
-                "value": self.cleaned_data[f"team_{team.id}"]
+                'team_id': team.id,
+                'value': self.cleaned_data[f'team_{team.id}']
             })
 
-        placements.sort(key=lambda x: x["value"])
+        placements.sort(key=lambda x: x['value'])
 
         return {
-            "placements": placements
+            'placements': placements
         }
 
 

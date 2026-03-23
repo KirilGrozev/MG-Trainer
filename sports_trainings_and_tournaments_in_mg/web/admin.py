@@ -7,11 +7,10 @@ from .models import (
     Match,
     Team,
     TeamMatch,
-    TeamProfile,
     Achievement,
     TeamPermissionRequest,
     Notification,
-    Category,
+    Category, TeamMatchProfile,
 )
 
 
@@ -21,10 +20,10 @@ class GradeInline(admin.StackedInline):
     can_delete = False
 
 
-class TeamProfileInline(admin.TabularInline):
-    model = TeamProfile
+class TeamMatchProfileInline(admin.TabularInline):
+    model = TeamMatchProfile
     extra = 0
-    autocomplete_fields = ['profile']
+    autocomplete_fields = ['team_match']
 
 
 class TeamMatchInline(admin.TabularInline):
@@ -49,7 +48,7 @@ class ProfileAdmin(admin.ModelAdmin):
         'user__last_name',
     )
     autocomplete_fields = ['user']
-    inlines = [GradeInline]
+    inlines = [GradeInline, TeamMatchProfileInline]
 
 
 @admin.register(Grade)
@@ -118,7 +117,6 @@ class TeamAdmin(admin.ModelAdmin):
     )
     list_filter = ('category', 'is_active')
     search_fields = ('name', 'category__category')
-    inlines = [TeamProfileInline]
 
 
 @admin.register(TeamMatch)
@@ -132,15 +130,15 @@ class TeamMatchAdmin(admin.ModelAdmin):
     autocomplete_fields = ['team', 'match']
 
 
-@admin.register(TeamProfile)
-class TeamProfileAdmin(admin.ModelAdmin):
-    list_display = ('team', 'profile')
+@admin.register(TeamMatchProfile)
+class TeamMatchProfileAdmin(admin.ModelAdmin):
+    list_display = ('team_match', 'profile')
     search_fields = (
-        'team__name',
+        'team_match__name',
         'profile__user__username',
         'profile__user__email',
     )
-    autocomplete_fields = ['team', 'profile']
+    autocomplete_fields = ['team_match', 'profile']
 
 
 @admin.register(Achievement)

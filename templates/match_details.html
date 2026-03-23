@@ -41,7 +41,7 @@
                                 <div>
                                     <h3>{{ tm.team.name }}</h3>
                                     <p class="meta-line">
-                                        Капацитет: {{ tm.team.students.count }} / {{ tm.team.number_of_players }}
+                                        Капацитет: {{ tm.students.count }} / {{ tm.team.number_of_players }}
                                     </p>
                                 </div>
 
@@ -63,16 +63,47 @@
                             {% if tm.team.is_active %}
                                 <h4 class="subsection-title">Участници</h4>
                                 <ul class="players-list">
-                                    {% for s in tm.team.students.all %}
+                                    {% for s in tm.students.all %}
                                         <li>{{ s }}</li>
                                     {% empty %}
                                         <li class="empty-note">Все още няма участници.</li>
                                     {% endfor %}
                                 </ul>
 
+                                {% if tm.students.exist %}
+                                    <div class="actions-wrap">
+                                        <button type="button" class="plain-toggle-btn"
+                                                onclick="document.getElementById('remove-student-box-{{ tm.team.id }}').hidden = false;">
+                                            Премахни ученик
+                                        </button>
+                                    </div>
+                                {% endif %}
+
+                                <div id="remove-student-box-{{ tm.team.id }}" class="mini-form-panel" hidden>
+                                    <form method="post" action="{% url 'remove student' tm.team.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="match_id" value="{{ match.id }}">
+                                        <input type="hidden" name="event_id" value="{{ event.id }}">
+
+                                        <select name="profile_id" required>
+                                            {% for s in tm.students.all %}
+                                                <option value="{{ s.id }}">{{ s }}</option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <div class="mini-form-actions">
+                                            <button type="submit">Премахни</button>
+                                            <button type="button" class="secondary-btn"
+                                                    onclick="document.getElementById('remove-student-box-{{ tm.team.id }}').hidden = true;">
+                                                Отказ
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
                                 {% if not request.user.profile.is_banned_from_participation and request.user.profile.is_active and request.user.profile.grade not in tm.team.grades.all and tm.status == 'editing' and not match.result and not match.is_finished %}
                                     <div class="actions-wrap">
-                                        {% with action=team_actions|get_item:tm.team.id %}
+                                        {% with action=team_actions|get_item:tm.id %}
                                             {% if action == 'join' %}
                                                 <form method="post" action="{% url 'request join team' tm.team.id %}"
                                                       class="ajax-action-form inline-form">
@@ -196,7 +227,7 @@
                 </div>
 
                 {% if request.user.profile.role == 'teacher' and match.teams.count < match.max_teams_per_match %}
-                    <div class="global-actions" style="margin-top: 22px;">
+                    <div class="global-actions" style=" margin-top: 22px;">
                         {% if available_teams %}
                             <button type="button" class="plain-toggle-btn"
                                     onclick="document.getElementById('add-team-box').hidden = false;">

@@ -18,7 +18,8 @@ from sports_trainings_and_tournaments_in_mg.web.forms import CreateActivityForm,
     CreateMatchForm, EditActivityForm, ScoreResultForm, RaceResultForm, EditMatchForm
 from sports_trainings_and_tournaments_in_mg.web.mixins import NoPermissionRedirectMixin
 from sports_trainings_and_tournaments_in_mg.web.models import Event, Profile, Activity, Achievement, Grade, Match, \
-    Team, TeamMatch, TeamPermissionRequest, TeamProfile, ActivityEvent, EventAchievement, TeamAchievement
+    Team, TeamMatch, TeamPermissionRequest, ActivityEvent, EventAchievement, TeamAchievement, \
+    TeamMatchProfile
 
 from allauth.socialaccount.providers.google.views import oauth2_login
 
@@ -119,7 +120,7 @@ class StudentDashboard(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         if not profile.is_active:
             context['my_request'] = TeamPermissionRequest.objects.none()
-            context['my_teams'] = Team.objects.none()
+            context['my_teams'] = TeamMatch.objects.none()
 
         context['notifications'] = profile.notifications.order_by('-created_at')[:10]
 
@@ -131,7 +132,7 @@ class StudentDashboard(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context['my_request'] = TeamPermissionRequest.objects\
             .filter(student=profile)
 
-        context['my_teams'] = profile.teams.all()
+        context['my_teams'] = profile.student_team_matches.all()
 
         #context['upcoming_matches'] = (
         #    Match.objects
@@ -144,7 +145,7 @@ class StudentDashboard(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         #)
 
         context['my_achievements'] = (
-            Achievement.objects.filter(teams__teamprofile__profile=profile)
+            Achievement.objects.filter(teams__teammatch__teammatchprofile__profile=profile)
             .distinct()
             .order_by('name')
         )
@@ -293,6 +294,8 @@ class ActivityDetails(LoginRequiredMixin, DetailView):
 
         context['event'] = event
 
+        context['active_matches_count'] = activity.matches.filter(is_active=True).count()
+
         context['match_actions'] = {}
         for m in activity.matches.all():
             if m.result:
@@ -362,7 +365,7 @@ class ArchiveMatch(LoginRequiredMixin, UserPassesTestMixin, View):
 
 class MatchDetails(LoginRequiredMixin, DetailView):
     template_name = 'match_details.html'
-    queryset = Match.objects.prefetch_related('teams__students')
+    queryset = Match.objects.prefetch_related('team_matches__students')
     context_object_name = 'match'
 
     def get_result_form_class(self, match):
@@ -397,30 +400,19 @@ class MatchDetails(LoginRequiredMixin, DetailView):
 
         context['available_teams'] = available_teams
 
-        context['match_team_ids'] = set(
-            TeamProfile.objects.filter(profile=profile, team__is_active=True)\
-            .values_list('team_id', flat=True)
-        )
-
-        context['my_pending_request_team_ids'] = set(
-            TeamPermissionRequest.objects.filter(student=profile, status='pending')
-            .values_list('team_id', flat=True)
-        )
-
-        if profile.role != 'student' or not profile.is_active:
-            context['team_actions'] = {}
-            context['my_pending_request_team_ids'] = []
-            context['match_team_ids'] = []
-
         context['team_actions'] = {}
 
         for team in match.teams.filter(is_active=True):
-            if team.can_student_request(profile, match):
-                context['team_actions'][team.id] = 'join'
-            elif team.can_student_cancel_request(profile):
-                context['team_actions'][team.id] = 'cancel'
-            elif team.can_student_leave(profile):
-                context['team_actions'][team.id] = 'leave'
+            team_match = get_object_or_404(TeamMatch, team=team, match=match)
+            if team_match.can_student_request(profile):
+                context['team_actions'][team_match.id] = 'join'
+            elif team_match.can_student_cancel_request(profile):
+                context['team_actions'][team_match.id] = 'cancel'
+            elif team_match.can_student_leave(profile):
+                context['team_actions'][team_match.id] = 'leave'
+
+        if profile.role != 'student' or not profile.is_active:
+            context['team_actions'] = {}
 
         context['available_achievements'] = Achievement.objects.filter(events=event)\
             .distinct()\
@@ -553,7 +545,7 @@ class RemoveTeam(LoginRequiredMixin, UserPassesTestMixin, View):
         match = get_object_or_404(Match, pk=match_id)
         event_id = request.POST.get('event_id')
 
-        if match.result:
+        if match.result or match.is_finished():
             messages.error(request, 'Мачът няма резултат.')
             return redirect('match details', event_id=event_id, pk=match.pk)
 
@@ -571,11 +563,12 @@ class ArchiveTeam(LoginRequiredMixin, UserPassesTestMixin, View):
         match_id = request.POST.get('match_id')
         event_id = request.POST.get('event_id')
         match = get_object_or_404(Match, pk=match_id)
+        team_match = get_object_or_404(TeamMatch, match=match, team=team)
 
         if match.result or match.is_finished():
             return redirect('match details', event_id=event_id, pk=match.pk)
 
-        if team.students.exists():
+        if team_match.students.exists():
             team.is_active = False
             team.save(update_fields=['is_active'])
             redirect('match details', event_id=event_id, pk=match.pk)
@@ -583,6 +576,26 @@ class ArchiveTeam(LoginRequiredMixin, UserPassesTestMixin, View):
         TeamMatch.objects.filter(team=team, match=match)
         team.delete()
         return redirect('match details', event_id=event_id, pk=match.pk)
+
+
+class RemoveStudent(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.profile.role == 'teacher'
+
+    def post(self, request, pk):
+        profile_id = request.POST.get('profile_id')
+        team = get_object_or_404(Team, pk=pk)
+        match_id = request.POST.get('match_id')
+        event_id = request.POST.get('event_id')
+        match = get_object_or_404(Match, pk=match_id)
+        team_match = get_object_or_404(TeamMatch, match=match, team=team)
+
+        if match.result or match.is_finished():
+            messages.error(request, 'Мачът няма резултат.')
+            return redirect('match details', event_id=event_id, pk=match.pk)
+
+        TeamMatchProfile.objects.filter(team_match=team_match, profile_id=profile_id).delete()
+        return redirect('match details', event_id=event_id, pk=match.id)
 
 
 class CreateAchievement(LoginRequiredMixin, UserPassesTestMixin, CreateView):
@@ -696,6 +709,8 @@ class EventDetails(LoginRequiredMixin, DetailView):
         context['available_achievements'] = Achievement.objects\
             .exclude(id__in=event.achievements.values_list('id', flat=True))
 
+        context['active_activities_count'] = event.activities.filter(is_active=True).count()
+
         context['activity_action'] = {}
         for a in event.activities.all():
             events_count = ActivityEvent.objects.filter(activity=a).count()
@@ -769,11 +784,11 @@ class RequestJoinTeam(LoginRequiredMixin, UserPassesTestMixin, View):
             messages.error(request, 'Този отбор е заключен и вече не приема заявки.')
             return redirect('match details', event_id=event_id, pk=match_id)
 
-        if team.students.count() >= team.number_of_players:
+        if team_match.students.count() >= team.number_of_players:
             messages.error(request, 'Този отбор е вече пълен и беше заключен.')
             return redirect('match details', event_id=event_id, pk=match_id)
 
-        if not team.can_student_request(profile, match):
+        if not team_match.can_student_request(profile):
             messages.error(request, 'Ти вече си в отбор за този мач.')
             return redirect('match details', event_id=event_id, pk=match.pk)
 
@@ -821,16 +836,17 @@ class ApproveTeamRequest(LoginRequiredMixin, UserPassesTestMixin, View):
             messages.error(request, 'Този отбор е заключен и веще не приема заявки.')
             return redirect('all team requests')
 
-        if req.team.students.count() >= req.team.number_of_players:
-            req.team.status = 'locked'
-            req.team.save(update_fields=['status'])
+        if req.team_match.students.count() >= req.team.number_of_players:
+            req.team_match.status = 'locked'
+            req.team_match.save(update_fields=['status'])
             messages.error(request, 'Този отбор е вече пълен и беше заключен.')
             return redirect('all team requests')
 
         req.status = 'approved'
         req.save(update_fields=['status'])
 
-        TeamProfile.objects.create(team=req.team, profile=req.student)
+        TeamMatchProfile.objects.get_or_create(profile=req.student, team_match=req.team_match)
+        messages.success(request, 'Успешно одобрена заявка за участие.')
         return redirect('all team requests')
 
 
@@ -846,14 +862,15 @@ class RejectTeamRequest(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect('all team requests')
 
         if req.status == 'approved':
-            TeamProfile.objects.filter(
-                team=req.team,
+            TeamMatchProfile.objects.filter(
+                team_match=req.team_match,
                 profile=req.student
             ).delete()
 
         req.status = 'rejected'
         req.save(update_fields=['status'])
 
+        messages.success(request, 'Успешно отхвърлена заявка за участие.')
         return redirect('all team requests')
 
 
@@ -900,13 +917,14 @@ class LeaveTeam(LoginRequiredMixin, UserPassesTestMixin, View):
         team = get_object_or_404(Team, pk=pk)
         match_id = request.POST.get('match_id')
         event_id = request.POST.get('event_id')
+        team_match = get_object_or_404(TeamMatch, match_id=match_id, team=team)
 
         if not profile.is_active:
             messages.error(request, 'Профилът не е активен.')
             return redirect('match details', event_id=event_id, pk=match_id)
 
-        TeamProfile.objects.filter(team=team, profile=profile).delete()
-        TeamPermissionRequest.objects.filter(team=team, student=profile).delete()
+        TeamMatchProfile.objects.filter(team_match=team_match, profile=profile).delete()
+        TeamPermissionRequest.objects.filter(team=team, team_match=team_match, student=profile).delete()
 
         if match_id:
             return redirect('match details', event_id=event_id, pk=match_id)
