@@ -2,8 +2,8 @@
     --bg: #f4f7fb;
     --surface: #ffffff;
     --surface-soft: #eef3f9;
-    --primary: #1f4e79;
-    --primary-dark: #163955;
+    --primary: #C5262E;
+    --primary-dark: #791E22;
     --accent: #f2b705;
     --text: #1f2937;
     --muted: #6b7280;
@@ -46,7 +46,7 @@ a {
 }
 
 .topbar {
-    background: linear-gradient(135deg, var(--primary) 0%, #285d8f 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, #791E22 100%);;
     color: white;
     box-shadow: var(--shadow);
     position: sticky;
@@ -75,17 +75,23 @@ a {
 }
 
 .brand-mark {
-    width: 46px;
-    height: 46px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #ffd75e 0%, var(--accent) 55%, #d89a00 100%);
+    background: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary-dark);
-    font-size: 1.2rem;
-    font-weight: bold;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.65);
+}
+
+.brand-mark img {
+    width: 82%;
+    height: 82%;
+    object-fit: contain;
+    display: block;
 }
 
 .brand-text h1 {
@@ -190,52 +196,39 @@ button {
     padding: 28px;
 }
 
-.messages-wrap {
-    margin-bottom: 18px;
-}
-
-.messages {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 10px;
-}
-
-.messages li {
-    padding: 14px 16px;
-    border-radius: var(--radius-sm);
+.custom-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 14px 20px;
+    border-radius: 12px;
     font-weight: 600;
-    border: 1px solid transparent;
+    z-index: 9999;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    transition: 0.3s ease;
 }
 
-.messages li.success {
-    background: rgba(30, 132, 73, 0.12);
-    color: var(--success);
-    border-color: rgba(30, 132, 73, 0.18);
+.custom-message.success {
+    background: #e6f4ea;
+    color: #1e7e34;
+    border: 1px solid #b7e4c7;
 }
 
-.messages li.error {
-    background: rgba(192, 57, 43, 0.1);
-    color: var(--danger);
-    border-color: rgba(192, 57, 43, 0.18);
+.custom-message.error {
+    background: #fdecea;
+    color: #c92a2a;
+    border: 1px solid #f5c2c7;
 }
 
-.messages li.warning {
-    background: rgba(242, 183, 5, 0.14);
-    color: #8a6700;
-    border-color: rgba(242, 183, 5, 0.24);
-}
-
-.messages li.info {
-    background: rgba(31, 78, 121, 0.1);
-    color: var(--primary);
-    border-color: rgba(31, 78, 121, 0.18);
+.custom-message.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px);
 }
 
 footer {
     margin-top: auto;
-    background: #0f2740;
+    background: rgba(121, 30, 34, 1);
     color: rgba(255, 255, 255, 0.88);
 }
 
@@ -259,13 +252,13 @@ footer {
     color: rgba(255, 255, 255, 0.72);
 }
 
-/* Generic content styling for all pages */
 h1, h2, h3 {
     color: var(--primary-dark);
     margin-top: 0;
 }
 
 h1 {
+    color: white;
     font-size: 2rem;
     margin-bottom: 18px;
 }
@@ -313,7 +306,7 @@ input:focus,
 select:focus,
 textarea:focus {
     outline: none;
-    border-color: var(--primary);
+    border-color: #285d8f;
     box-shadow: 0 0 0 4px rgba(31, 78, 121, 0.12);
 }
 
@@ -323,12 +316,12 @@ textarea {
 }
 
 form button[type="submit"]:not(.logout-form button) {
-    background: var(--primary);
+    background: #285d8f;
     color: white;
 }
 
 form button[type="submit"]:not(.logout-form button):hover {
-    background: var(--primary-dark);
+    background: #2A1C61;
 }
 
 button:disabled {
@@ -353,7 +346,7 @@ th, td {
 
 th {
     background: var(--surface-soft);
-    color: var(--primary-dark);
+    color: #2A1C61;
 }
 
 .muted {
@@ -367,7 +360,7 @@ th {
     padding: 6px 10px;
     border-radius: 999px;
     background: var(--surface-soft);
-    color: var(--primary-dark);
+    color: #2A1C61;
     font-size: 0.85rem;
     font-weight: 700;
 }

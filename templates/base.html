@@ -8,14 +8,14 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
     {% block additional_css %}{% endblock %}
     <title>{% block title %}Училищен спортен мениджър{% endblock %}</title>
-</head>
+</head>                         
 <body>
 <div class="site-shell">
     <header class="topbar">
         <div class="topbar-inner">
             <div class="brand-row">
                 <div class="brand">
-                    <div class="brand-mark">🏆</div>
+                    <div class="brand-mark"><img src="{% static 'images/Logo-MG_red_png.png' %}" alt="mg logo"></div>
                     <div class="brand-text">
                         <h1>Училищен спортен мениджър</h1>
                         <p>Събития, дейности, отбори и резултати на едно място</p>
@@ -54,15 +54,7 @@
 
     <main class="page-wrap">
         <div class="content-card">
-            {% if messages %}
-                <div class="messages-wrap">
-                    <ul class="messages">
-                        {% for message in messages %}
-                            <li class="{{ message.tags }}">{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
+            <div id="custom-message" class="custom-message hidden"></div>
 
             {% block content %}
             {% endblock %}

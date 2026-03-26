@@ -6,7 +6,7 @@ from .models import Profile, Grade
 from .services import create_upcoming_event_notifications, promote_students_and_graduate
 
 
-@receiver(user_signed_up)
+@receiver(user_logged_in)
 def create_profile(request, user, **kwargs):
     profile, _ = Profile.objects.get_or_create(user=user)
 

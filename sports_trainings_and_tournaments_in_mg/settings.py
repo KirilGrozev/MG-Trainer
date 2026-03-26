@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = 'django-insecure-qahnbevw0h$sg%^os2@e(v#-m*fgd&9u%d5*4j_*l3wbv%p(cm'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -100,11 +100,11 @@ WSGI_APPLICATION = 'sports_trainings_and_tournaments_in_mg.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT')
+        'NAME': 'mg-trainer',
+        'USER': 'postgres',
+        'PASSWORD': 'password',
+        'HOST': '127.0.0.1',
+        'PORT': '5432'
     }
 }
 
@@ -191,7 +191,7 @@ ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
 
-ACCOUNT_ALLOW_REGISTRATION = False
+#ACCOUNT_ALLOW_REGISTRATION = False
 LOGIN_URL = '/account/login/'
 LOGIN_REDIRECT_URL = '/dashboard-redirect'
 SIGNUP_REDIRECT_URL = '/dashboard-redirect'
@@ -203,6 +203,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 #SOCIALACCOUNT_ADAPTER = 'sports_trainings_and_tournaments_in_mg.web.adapter.SchoolAccountAdapter'
 ACCOUNT_ADAPTER = 'sports_trainings_and_tournaments_in_mg.web.adapter.TestSchoolAccountAdapter'
 
-SESSION_COOKIE_AGE = 60 * 60 * 24 * 7
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True
+#SESSION_COOKIE_AGE = 60 * 60 * 24 * 7
+#SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+#SESSION_SAVE_EVERY_REQUEST = True

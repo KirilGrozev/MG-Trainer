@@ -41,14 +41,13 @@ class DashboardRedirect(View):
             return redirect('teacher dashboard')
 
         if not profile.is_complete:
-            return redirect('additional info', id=profile.id)
+            return redirect('additional info')
 
         return redirect('student dashboard')
 
 
 class AdditionalStudentInfo(LoginRequiredMixin, NoPermissionRedirectMixin, UserPassesTestMixin, TemplateView):
     template_name = 'additional_student_info.html'
-    success_url = reverse_lazy('student dashboard')
 
     def test_func(self):
         return self.request.user.profile.role == 'student'
@@ -87,7 +86,7 @@ class AdditionalStudentInfo(LoginRequiredMixin, NoPermissionRedirectMixin, UserP
             profile.is_complete = True
             profile.save(update_fields=['is_complete'])
 
-            return redirect(self.success_url)
+            return redirect('student dashboard')
 
         context = self.get_context_data()
         context['profile_form'] = profile_form

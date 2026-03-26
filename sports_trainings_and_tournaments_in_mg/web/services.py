@@ -13,7 +13,7 @@ def promote_students_and_graduate():
     today = timezone.now().date()
     curr_year = today.year
 
-    if 10 < today.month < 7:
+    if 10 < int(today.month) < 7:
         return
 
     students = Profile.objects.filter(
