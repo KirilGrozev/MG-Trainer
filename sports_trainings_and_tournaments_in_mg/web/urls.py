@@ -1,6 +1,6 @@
 from django.urls import path
 
-from sports_trainings_and_tournaments_in_mg.web.views import Home, StudentDashboard, TeacherDashboard, \
+from sports_trainings_and_tournaments_in_mg.web.views import StudentDashboard, TeacherDashboard, \
     CreateAchievement, CreateEvent, EditEvent, EventDetails, Calendar, AdditionalStudentInfo, CreateActivity, \
     DashboardRedirect, EditStudentCategories, ActivityDetails, MatchDetails, CreateMatch, \
     CreateTeam, MatchResultView, RequestJoinTeam, ApproveTeamRequest, LockTeam, \
@@ -10,9 +10,8 @@ from sports_trainings_and_tournaments_in_mg.web.views import Home, StudentDashbo
     UnlockTeam, RemoveStudent
 
 urlpatterns = [
-    path('', Home.as_view(), name='home'),
     #path('account/login/', GoogleLoginRedirectView.as_view(), name='account login'),
-    path('dashboard-redirect/', DashboardRedirect.as_view(), name='dashboard redirect'),
+    path('', DashboardRedirect.as_view(), name='dashboard redirect'),
     path('student/additional-info/', AdditionalStudentInfo.as_view(), name='additional info'),
     path('student/edit/categories/', EditStudentCategories.as_view(), name='edit student categories'),
     path('student/dashboard/', StudentDashboard.as_view(), name='student dashboard'),

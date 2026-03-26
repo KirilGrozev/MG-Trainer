@@ -24,10 +24,6 @@ from sports_trainings_and_tournaments_in_mg.web.models import Event, Profile, Ac
 from allauth.socialaccount.providers.google.views import oauth2_login
 
 
-class Home(LoginRequiredMixin, TemplateView):
-    template_name = 'home.html'
-
-
 #class GoogleLoginRedirectView(View):
 #   def get(self, request, *args, **kwargs):
 #      return oauth2_login(request)
@@ -35,6 +31,9 @@ class Home(LoginRequiredMixin, TemplateView):
 
 class DashboardRedirect(View):
     def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('account_login')
+
         profile = request.user.profile
 
         if profile.role == 'teacher':
@@ -943,6 +942,11 @@ class AddAbsence(LoginRequiredMixin, UserPassesTestMixin, View):
             return redirect('teacher dashboard')
 
         student.add_absence()
+
+        #if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        #    return JsonResponse({'success': True, 'message': 'Отсъствието е добавено.'})
+
+        #messages.success(request, 'Отсъствието е добавено.')
         return redirect(request.META.get('HTTP_REFERER', 'teacher_dashboard'))
 
 
