@@ -387,12 +387,13 @@ class MatchDetails(LoginRequiredMixin, DetailView):
 
         allowed_grades = match.activity.grades.all()
 
-        available_teams = Team.objects.filter(is_active=True, category=match.activity.category)
+        available_teams = (Team.objects.filter(is_active=True, category=match.activity.category) \
+            .exclude(id__in=already_in).distinct())
 
         if allowed_grades.exists():
             available_teams = available_teams.filter(
                 grades__in=allowed_grades
-            ).exclude(id__in=already_in).distinct()
+            )
 
         context['event'] = event
 

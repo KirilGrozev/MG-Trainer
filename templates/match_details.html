@@ -70,7 +70,7 @@
                                     {% endfor %}
                                 </ul>
 
-                                {% if tm.students.exist %}
+                                {% if tm.students.count > 0 %}
                                     <div class="actions-wrap">
                                         <button type="button" class="plain-toggle-btn"
                                                 onclick="document.getElementById('remove-student-box-{{ tm.team.id }}').hidden = false;">
