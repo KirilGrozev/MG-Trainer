@@ -1,5 +1,3 @@
-from allauth.account.signals import user_signed_up
-from allauth.socialaccount.signals import social_account_added
 from django.contrib.auth import user_logged_in
 from django.dispatch import receiver
 from .models import Profile, Grade
