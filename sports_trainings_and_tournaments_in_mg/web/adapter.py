@@ -5,21 +5,33 @@ from django.core.exceptions import PermissionDenied
 ALLOWED_DOMAIN = 'schoolmath.eu'
 
 
-class SchoolAccountAdapter(DefaultSocialAccountAdapter):
-    def pre_social_login(self, request, sociallogin):
-        email = sociallogin.user.email
-        domain = email.split('@')[-1]
+def allowed_email(email):
+    return bool(email and email.lower().endswith(f'@{ALLOWED_DOMAIN}'))
 
-        if domain not in ALLOWED_DOMAIN:
-            raise PermissionDenied("Only school account allowed")
 
+class AccountAdapter(DefaultAccountAdapter):
+    def is_open_for_signup(self, request):
+        return False
+
+    def clean_email(self, email):
+        email = super().clean_email(email)
+        if not allowed_email(email):
+            raise PermissionDenied('Неразрешен домейн.')
+        return email
+
+    def authenticate(self, request, **credentials):
+        user = super().authenticate(request, **credentials)
+        if user and not allowed_email(getattr(user, 'email', None)):
+            raise PermissionDenied('Неразрешен домейн.')
+        return user
+
+
+class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def is_open_for_signup(self, request, sociallogin):
-        return True
+        email = sociallogin.user.email or sociallogin.account.extra_data.get('email')
+        return allowed_email(email)
 
-
-#class TestSchoolAccountAdapter(DefaultAccountAdapter):
-#    def clean_email(self, email):
-#        domain = email.split('@')[-1]
-#        if domain not in ALLOWED_DOMAIN:
-#            raise PermissionDenied('Only school account allowed')
-#        return email
+    def pre_social_login(self, request, sociallogin):
+        email = sociallogin.user.email or sociallogin.account.extra_data.get('email')
+        if not allowed_email(email):
+            raise PermissionDenied('Неразрешен домейн.')

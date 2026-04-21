@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'sports_trainings_and_tournaments_in_mg.web',
 
@@ -197,11 +198,21 @@ LOGIN_REDIRECT_URL = '/'
 #SIGNUP_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/account/login/'
 ACCOUNT_LOGOUT_ON_GET = True
-SOCIALACCOUNT_ONLY = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
-SOCIALACCOUNT_ADAPTER = 'sports_trainings_and_tournaments_in_mg.web.adapter.SchoolAccountAdapter'
-#ACCOUNT_ADAPTER = 'sports_trainings_and_tournaments_in_mg.web.adapter.TestSchoolAccountAdapter'
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "VERIFIED_EMAIL": True,
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {
+            "prompt": "select_account",
+        },
+    }
+}
+
+SOCIALACCOUNT_ADAPTER = 'sports_trainings_and_tournaments_in_mg.web.adapter.SocialAccountAdapter'
+ACCOUNT_ADAPTER = 'sports_trainings_and_tournaments_in_mg.web.adapter.AccountAdapter'
 
 #SESSION_COOKIE_AGE = 60 * 60 * 24 * 7
 #SESSION_EXPIRE_AT_BROWSER_CLOSE = False
