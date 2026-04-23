@@ -15,27 +15,8 @@
             <p>Влез в профила си, за да достъпиш събитията, отборите и заявките.</p>
         </div>
 
-        <div class="form-panel-body">
-            <form method="post" action="{% url 'account_login' %}">
-                {% csrf_token %}
-
-                <label>Имейл:</label>
-                <input type="text" name="login" placeholder="Имейл" class="input-field">
-
-                <label>Парола:</label>
-                <input type="password" name="password" placeholder="Парола" class="input-field">
-
-                {% if redirect_field_value %}
-                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
-                {% endif %}
-
-                <div class="form-actions">
-                    <button type="submit" class="btn-main">Вход</button>
-                </div>
-            </form>
-
-            <div class="auth-extra" style="margin-top: 18px;">
-                <p class="muted-text">Или използвай Google акаунт:</p>
+            <div class="auth-extra" style="margin: 130px;">
+                <p class="muted-text">Използвай своя Schoolmath акаунт:</p>
 
                 <a href="{% provider_login_url 'google' %}" class="btn-secondary-link">Вход с Google</a>
             </div>

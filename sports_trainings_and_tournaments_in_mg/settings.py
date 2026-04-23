@@ -109,30 +109,6 @@ DATABASES = {
     }
 }
 
-CELERY_BEAT_SCHEDULE = {
-    'promote_students_on_july_2': {
-        'task': 'sports_trainings_and_tournaments_in_mg.web.tasks.promote_students',
-        'schedule': crontab(
-            minute=0,
-            hour=3,
-            day_of_month=2,
-            month_of_year=7,
-        ),
-    },
-    'send_upcoming_event_notifications_daily': {
-        'task': 'sports_trainings_and_tournaments_in_mg.web.tasks.create_event_notifications',
-        'schedule': crontab(
-            #hour=7,
-            minute='*/1*'
-        ),
-    },
-}
-
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -200,6 +176,7 @@ LOGOUT_REDIRECT_URL = '/account/login/'
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_ONLY = True
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -212,7 +189,6 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SOCIALACCOUNT_ADAPTER = 'sports_trainings_and_tournaments_in_mg.web.adapter.SocialAccountAdapter'
-ACCOUNT_ADAPTER = 'sports_trainings_and_tournaments_in_mg.web.adapter.AccountAdapter'
 
 #SESSION_COOKIE_AGE = 60 * 60 * 24 * 7
 #SESSION_EXPIRE_AT_BROWSER_CLOSE = False
